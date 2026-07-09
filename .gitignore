@@ -1,2 +1,14 @@
 .DS_Store
 .obsidian/
+
+# .NET
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+*.user
+artifacts/
+.vs/
+TestResults/
+*.nupkg
+*.snupkg
