@@ -12,3 +12,8 @@ artifacts/
 TestResults/
 *.nupkg
 *.snupkg
+
+# Secrets / local env
+.env
+.env.*
+*.secret
