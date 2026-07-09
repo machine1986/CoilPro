@@ -25,6 +25,20 @@ public static class TeslaScopesExtensions
     /// Serializes the flags to the space-separated scope string the OAuth endpoint expects,
     /// e.g. <c>"openid offline_access vehicle_device_data"</c>.
     /// </summary>
-    public static string ToScopeString(this TeslaScopes scopes) =>
-        throw new NotImplementedException("TODO(M1 core-impl): flags -> snake_case scope string");
+    public static string ToScopeString(this TeslaScopes scopes)
+    {
+        var parts = new List<string>();
+
+        if (scopes.HasFlag(TeslaScopes.Openid)) parts.Add("openid");
+        if (scopes.HasFlag(TeslaScopes.OfflineAccess)) parts.Add("offline_access");
+        if (scopes.HasFlag(TeslaScopes.UserData)) parts.Add("user_data");
+        if (scopes.HasFlag(TeslaScopes.VehicleDeviceData)) parts.Add("vehicle_device_data");
+        if (scopes.HasFlag(TeslaScopes.VehicleLocation)) parts.Add("vehicle_location");
+        if (scopes.HasFlag(TeslaScopes.VehicleCmds)) parts.Add("vehicle_cmds");
+        if (scopes.HasFlag(TeslaScopes.VehicleChargingCmds)) parts.Add("vehicle_charging_cmds");
+        if (scopes.HasFlag(TeslaScopes.EnergyDeviceData)) parts.Add("energy_device_data");
+        if (scopes.HasFlag(TeslaScopes.EnergyCmds)) parts.Add("energy_cmds");
+
+        return string.Join(' ', parts);
+    }
 }

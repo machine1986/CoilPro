@@ -9,6 +9,13 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+
+    <!-- dotnet tool packaging -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>coil</ToolCommandName>
+    <IsPackable>true</IsPackable>
+    <PackageId>Coil.Cli</PackageId>
+    <Description>Command-line companion for Coil.NET: OAuth login (loopback redirect), key generation, and smoke tests for the Tesla Fleet API. Not affiliated with Tesla, Inc.</Description>
   </PropertyGroup>
 
 </Project>

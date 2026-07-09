@@ -1,0 +1,25 @@
+# Dependabot configuration for Coil.NET
+#
+# Keeps NuGet package references and GitHub Actions workflow versions current
+# with weekly pull requests.
+version: 2
+updates:
+  # NuGet dependencies across the whole solution (src/, tests/, tools/, samples/).
+  - package-ecosystem: "nuget"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "nuget"
+
+  # Actions used in .github/workflows/*.yml (e.g. actions/checkout, actions/setup-dotnet).
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "github-actions"

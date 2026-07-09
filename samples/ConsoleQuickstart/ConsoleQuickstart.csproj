@@ -9,6 +9,8 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <!-- Sample app, not a library — never publish this to NuGet. -->
+    <IsPackable>false</IsPackable>
   </PropertyGroup>
 
 </Project>

@@ -1,0 +1,101 @@
+# Release workflow for Coil.NET
+#
+# Triggered by pushing a version tag (e.g. `v1.2.3`). Packs the packable
+# library projects and publishes them to NuGet.org.
+#
+# MANUAL PREP STEP (not automated by this file):
+#   Add a repository secret named NUGET_API_KEY (Settings > Secrets and
+#   variables > Actions > New repository secret) containing a NuGet.org API
+#   key scoped to the Coil packages before the first release tag is pushed.
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+env:
+  # Directory the packed .nupkg/.snupkg files are written to.
+  PACKAGE_OUTPUT_DIR: ${{ github.workspace }}/artifacts/packages
+
+jobs:
+  pack-and-publish:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          # MinVer derives the package version from git tags, so the full
+          # history/tags (not just the tagged commit) must be available.
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          # Libraries multi-target net8.0;net10.0 (see Directory.Build.props).
+          dotnet-version: |
+            10.0.x
+            8.0.x
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build (Release)
+        run: dotnet build --configuration Release --no-restore
+
+      # Pack only the packable library projects, not the CLI tool, samples,
+      # or test projects.
+      - name: Pack Coil
+        run: >
+          dotnet pack src/Coil/Coil.csproj
+          --configuration Release
+          --no-build
+          --output "${{ env.PACKAGE_OUTPUT_DIR }}"
+
+      - name: Pack Coil.Commands
+        run: >
+          dotnet pack src/Coil.Commands/Coil.Commands.csproj
+          --configuration Release
+          --no-build
+          --output "${{ env.PACKAGE_OUTPUT_DIR }}"
+
+      - name: Pack Coil.AspNetCore
+        run: >
+          dotnet pack src/Coil.AspNetCore/Coil.AspNetCore.csproj
+          --configuration Release
+          --no-build
+          --output "${{ env.PACKAGE_OUTPUT_DIR }}"
+
+      - name: List packages
+        run: ls -la "${{ env.PACKAGE_OUTPUT_DIR }}"
+
+      - name: Upload package artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: nuget-packages
+          path: |
+            ${{ env.PACKAGE_OUTPUT_DIR }}/*.nupkg
+            ${{ env.PACKAGE_OUTPUT_DIR }}/*.snupkg
+
+      # Guarded so a run in a repo/fork where the secret hasn't been
+      # configured yet (see the header comment) never attempts a push with an
+      # empty API key. This step (and this whole workflow) only ever runs as
+      # a genuine GitHub Actions run — the runner sets `GITHUB_ACTIONS=true`
+      # in the process environment automatically for every job (the same
+      # variable Directory.Build.props checks for ContinuousIntegrationBuild)
+      # — so the explicit secrets check below is what actually gates the push.
+      # `dotnet nuget push` accepts a glob for the package path and, for each
+      # matched .nupkg, automatically also pushes the sibling .snupkg symbol
+      # package (produced because SymbolPackageFormat=snupkg is set in
+      # Directory.Build.props) — no separate push step is needed for those.
+      - name: Push packages to NuGet.org
+        if: ${{ secrets.NUGET_API_KEY != '' }}
+        run: >
+          dotnet nuget push "${{ env.PACKAGE_OUTPUT_DIR }}/*.nupkg"
+          --api-key ${{ secrets.NUGET_API_KEY }}
+          --source https://api.nuget.org/v3/index.json
+          --skip-duplicate
