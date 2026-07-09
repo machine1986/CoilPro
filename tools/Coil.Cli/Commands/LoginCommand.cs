@@ -125,6 +125,20 @@ internal static class LoginCommand
             return 1;
         }
 
+        try
+        {
+            var tokenStore = new FileTokenStore();
+            await tokenStore.SaveAsync(tokens, ct).ConfigureAwait(false);
+
+            var session = new CliSession { ClientId = options.ClientId!, Region = options.Region };
+            await session.SaveAsync(ct: ct).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"coil login: signed in, but failed to persist tokens/session: {ex.Message}");
+            return 1;
+        }
+
         PrintSuccess(tokens);
         return 0;
     }
@@ -138,6 +152,10 @@ internal static class LoginCommand
         Console.WriteLine($"  Refresh token: {TokenMask.Mask(tokens.RefreshToken)}");
         Console.WriteLine($"  ID token:      {TokenMask.Mask(tokens.IdToken)}");
         Console.WriteLine();
-        Console.WriteLine("Tokens were not written to disk or logs. Wire up an ITokenStore in your app to persist them.");
+        Console.WriteLine($"Tokens saved to: {FileTokenStore.DefaultPath}");
+        Console.WriteLine($"Session saved to: {CliSession.DefaultPath}");
+        Console.WriteLine("(client secret is never persisted — pass --client-secret again if a future action needs it, e.g. `coil partner`)");
+        Console.WriteLine();
+        Console.WriteLine("Run `coil vehicles` to list vehicles on this account.");
     }
 }

@@ -6,12 +6,17 @@ namespace Coil.AspNetCore;
 
 /// <summary>
 /// Dependency-injection extensions that wire up the Coil.NET Tesla Fleet API SDK
-/// (<see cref="ITeslaAuthClient"/>, <see cref="ITokenStore"/>) for ASP.NET Core / generic-host apps.
+/// (<see cref="ITeslaAuthClient"/>, <see cref="ITokenStore"/>, <see cref="ITeslaTokenProvider"/>,
+/// <see cref="ICoilClient"/>) for ASP.NET Core / generic-host apps.
 /// </summary>
 public static class CoilServiceCollectionExtensions
 {
     /// <summary>Logical name of the <see cref="HttpClient"/> registered for <see cref="ITeslaAuthClient"/>.</summary>
     public const string HttpClientName = "Coil.Auth";
+
+    /// <summary>Logical name of the <see cref="HttpClient"/> registered for <see cref="ICoilClient"/>, pointed at
+    /// the configured account's Tesla Fleet API host.</summary>
+    public const string ApiHttpClientName = "Coil.Api";
 
     /// <summary>
     /// Registers the Coil.NET Tesla Fleet API client services:
@@ -22,12 +27,28 @@ public static class CoilServiceCollectionExtensions
     /// <item><description>Registers <see cref="ITokenStore"/> → <see cref="InMemoryTokenStore"/> as the default
     /// (registered with <c>TryAdd</c>, so callers can register their own <see cref="ITokenStore"/> — e.g. one backed
     /// by ASP.NET Core Data Protection — before or after calling this method).</description></item>
+    /// <item><description>Registers <see cref="ITeslaTokenProvider"/> → <see cref="TeslaTokenProvider"/>, wired to
+    /// the resolved <see cref="ITokenStore"/> and <see cref="ITeslaAuthClient"/> (registered with
+    /// <c>TryAdd</c>).</description></item>
+    /// <item><description>Registers a second named <see cref="HttpClient"/> (<see cref="ApiHttpClientName"/>) whose
+    /// <see cref="HttpClient.BaseAddress"/> is the Tesla Fleet API host for the configured
+    /// <see cref="TeslaAuthOptions.Region"/> (or the explicit <see cref="TeslaAuthOptions.Endpoints"/> override,
+    /// when set).</description></item>
+    /// <item><description>Registers <see cref="ICoilClient"/> → <see cref="CoilClient"/> (registered with
+    /// <c>TryAdd</c>), backed by the <see cref="ApiHttpClientName"/> client, the resolved
+    /// <see cref="ITeslaTokenProvider"/>, and a <see cref="CoilClientOptions"/> instance — defaulted, or customized
+    /// via <paramref name="configureClient"/>.</description></item>
     /// </list>
     /// </summary>
     /// <param name="services">The service collection to add registrations to.</param>
     /// <param name="configure">Callback that sets <see cref="TeslaAuthOptions.ClientId"/> and other required options.</param>
+    /// <param name="configureClient">Optional callback to customize <see cref="CoilClientOptions"/> (retry/backoff
+    /// tunables) for the registered <see cref="ICoilClient"/>. When omitted, defaults are used.</param>
     /// <returns>The same <paramref name="services"/> instance, for chaining.</returns>
-    public static IServiceCollection AddCoilApi(this IServiceCollection services, Action<TeslaAuthOptions> configure)
+    public static IServiceCollection AddCoilApi(
+        this IServiceCollection services,
+        Action<TeslaAuthOptions> configure,
+        Action<CoilClientOptions>? configureClient = null)
     {
         ArgumentNullException.ThrowIfNull(services);
         ArgumentNullException.ThrowIfNull(configure);
@@ -49,6 +70,34 @@ public static class CoilServiceCollectionExtensions
         });
 
         services.TryAddSingleton<ITokenStore, InMemoryTokenStore>();
+
+        services.TryAddSingleton<ITeslaTokenProvider>(sp =>
+            new TeslaTokenProvider(
+                sp.GetRequiredService<ITokenStore>(),
+                sp.GetRequiredService<ITeslaAuthClient>(),
+                sp.GetService<TimeProvider>()));
+
+        // CoilClientOptions has no meaningful "reload" semantics (plain retry/backoff tunables), so a single
+        // resolved-and-configured instance is registered directly rather than round-tripping through IOptions.
+        var clientOptions = new CoilClientOptions();
+        configureClient?.Invoke(clientOptions);
+        services.TryAddSingleton(clientOptions);
+
+        services.AddHttpClient(ApiHttpClientName, (sp, http) =>
+        {
+            var authOptions = sp.GetRequiredService<TeslaAuthOptions>();
+            var endpoints = authOptions.Endpoints ?? TeslaEndpoints.For(authOptions.Region);
+            http.BaseAddress = endpoints.FleetApiBaseUrl;
+        });
+
+        services.TryAddSingleton<ICoilClient>(sp =>
+        {
+            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+            var http = httpClientFactory.CreateClient(ApiHttpClientName);
+            var tokenProvider = sp.GetRequiredService<ITeslaTokenProvider>();
+            var options = sp.GetRequiredService<CoilClientOptions>();
+            return new CoilClient(http, tokenProvider, options);
+        });
 
         return services;
     }

@@ -28,16 +28,18 @@ internal static class CliApp
                 return await LoginCommand.RunAsync(rest, ct).ConfigureAwait(false);
 
             case "keys":
-                PrintComingSoon("coil keys", "M2", "generates a Vehicle Command Protocol signing keypair (EC P-256) and the .well-known PEM file.");
+                PrintComingSoon("coil keys", "M3", "generates a Vehicle Command Protocol signing keypair (EC P-256) and the .well-known PEM file.");
                 return 0;
 
             case "partner":
-                PrintComingSoon("coil partner", "M2", "registers your application as a Tesla Fleet API partner (domain + public key).");
+                PrintComingSoon("coil partner", "M3", "registers your application as a Tesla Fleet API partner (domain + public key).");
                 return 0;
 
             case "vehicles":
-                PrintComingSoon("coil vehicles", "M3", "lists vehicles, wakes them up, and runs signed-command smoke tests.");
-                return 0;
+                return await VehiclesCommand.RunAsync(rest, ct).ConfigureAwait(false);
+
+            case "data":
+                return await DataCommand.RunAsync(rest, ct).ConfigureAwait(false);
 
             default:
                 Console.Error.WriteLine($"Unknown command: '{command}'.");
@@ -68,9 +70,10 @@ internal static class CliApp
 
             Commands:
               login       Run the OAuth authorization-code + PKCE flow via a local loopback redirect.
-              keys        Generate a Vehicle Command signing keypair.        (coming in M2)
-              partner     Register / manage your Tesla partner account.      (coming in M2)
-              vehicles    List vehicles / send smoke-test commands.          (coming in M3)
+              vehicles    List the vehicles on the authenticated account.
+              data        Fetch a vehicle data snapshot (battery, drive, climate, vehicle state).
+              keys        Generate a Vehicle Command signing keypair.        (coming in M3)
+              partner     Register / manage your Tesla partner account.      (coming in M3)
 
             'login' options:
               --client-id <id>          OAuth client id                       (or env COIL_CLIENT_ID)
@@ -79,6 +82,11 @@ internal static class CliApp
               --scopes <s1,s2,...>      Comma-separated scopes, default: openid,offline_access
               --port <n>                Fixed loopback port (default: an ephemeral free port)
               --timeout <seconds>       Seconds to wait for the browser callback, default: 120
+
+            'data' options:
+              <vin>                     Vehicle id or VIN (required)
+              --endpoints <e1,e2,...>   Data segments to request, default: charge_state,drive_state,
+                                        climate_state,vehicle_state
 
             Global:
               --help, -h                Show this help.

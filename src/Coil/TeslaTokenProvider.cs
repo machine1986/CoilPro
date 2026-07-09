@@ -10,6 +10,7 @@ public sealed class TeslaTokenProvider : ITeslaTokenProvider
     private readonly ITokenStore _store;
     private readonly ITeslaAuthClient _authClient;
     private readonly TimeProvider _timeProvider;
+    private readonly SemaphoreSlim _refreshLock = new(1, 1);
 
     /// <summary>Refresh a little before actual expiry to avoid racing the clock.</summary>
     private static readonly TimeSpan ExpiryLeeway = TimeSpan.FromSeconds(60);
@@ -23,6 +24,50 @@ public sealed class TeslaTokenProvider : ITeslaTokenProvider
     }
 
     /// <inheritdoc />
-    public ValueTask<string> GetAccessTokenAsync(CancellationToken ct = default) =>
-        throw new NotImplementedException("TODO(M2 core-client): load from store, refresh when expired, persist, return access token");
+    public async ValueTask<string> GetAccessTokenAsync(CancellationToken ct = default)
+    {
+        var tokens = await _store.GetAsync(ct).ConfigureAwait(false)
+            ?? throw new InvalidOperationException("No stored tokens — run `coil login`.");
+
+        var now = _timeProvider.GetUtcNow();
+        if (!tokens.IsExpired(now + ExpiryLeeway))
+        {
+            return tokens.AccessToken;
+        }
+
+        if (string.IsNullOrEmpty(tokens.RefreshToken))
+        {
+            // Expired and unrefreshable: throw rather than spend a pay-per-use API call that will 401.
+            throw new InvalidOperationException(
+                "Access token has expired and no refresh token is available — run `coil login` again.");
+        }
+
+        await _refreshLock.WaitAsync(ct).ConfigureAwait(false);
+        try
+        {
+            // Re-read: another caller may have refreshed while we waited for the lock.
+            tokens = await _store.GetAsync(ct).ConfigureAwait(false)
+                ?? throw new InvalidOperationException("No stored tokens — run `coil login`.");
+
+            now = _timeProvider.GetUtcNow();
+            if (!tokens.IsExpired(now + ExpiryLeeway))
+            {
+                return tokens.AccessToken;
+            }
+
+            if (string.IsNullOrEmpty(tokens.RefreshToken))
+            {
+                throw new InvalidOperationException(
+                    "Access token has expired and no refresh token is available — run `coil login` again.");
+            }
+
+            var refreshed = await _authClient.RefreshAsync(tokens.RefreshToken, ct).ConfigureAwait(false);
+            await _store.SaveAsync(refreshed, ct).ConfigureAwait(false);
+            return refreshed.AccessToken;
+        }
+        finally
+        {
+            _refreshLock.Release();
+        }
+    }
 }

@@ -8,4 +8,7 @@ This document is the record of what changed: whenever verification turns up a di
 
 | Date | Area | Spec said | Actual | Source |
 |---|---|---|---|---|
-| _(none yet)_ | | | | |
+| 2026-07-09 | `vehicle_data` `endpoints` param | Not specified in the planning-time spec | Coil.NET's `VehicleDataEndpoint.ToQueryValue()` joins selected segments with `;` (e.g. `charge_state;drive_state`) as the `endpoints` query parameter | Status: to verify — [developer.tesla.com](https://developer.tesla.com) `vehicle_data` reference |
+| 2026-07-09 | Charging-history endpoint path | Not specified in the planning-time spec | Assumed `api/1/dx/charging/history`; response modeled as `ChargingHistoryPage` (`data`, `totalResults`, `hasMoreData`) with per-record fields `vin`, `chargeStartDateTime`, `chargeStopDateTime`, `siteLocationName` | Status: to verify — path and shape are provisional, not confirmed against a live account |
+| 2026-07-09 | Rate-limit header names | Not specified in the planning-time spec | `RateLimitInfo.FromHeaders` reads `x-ratelimit-limit` / `x-ratelimit-remaining` / `x-ratelimit-reset` (plus the standard `Retry-After`) | Status: to verify — Fleet API rate-limit header contract is not fully public |
+| 2026-07-09 | Fleet API error body shape | Not specified in the planning-time spec | `TeslaApiException` parsing assumes `{ "error": "...", "error_description": "..." }` | Status: to verify — against actual error responses from `developer.tesla.com`-documented endpoints |

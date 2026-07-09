@@ -1,4 +1,6 @@
 - name: Getting Started
   href: getting-started.md
+- name: Reading Vehicle Data
+  href: reading-vehicle-data.md
 - name: Partner Onboarding
   href: partner-onboarding.md
