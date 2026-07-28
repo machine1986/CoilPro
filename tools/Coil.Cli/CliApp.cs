@@ -28,18 +28,19 @@ internal static class CliApp
                 return await LoginCommand.RunAsync(rest, ct).ConfigureAwait(false);
 
             case "keys":
-                PrintComingSoon("coil keys", "M3", "generates a Vehicle Command Protocol signing keypair (EC P-256) and the .well-known PEM file.");
-                return 0;
+                return await KeysCommand.RunAsync(rest, ct).ConfigureAwait(false);
 
             case "partner":
-                PrintComingSoon("coil partner", "M3", "registers your application as a Tesla Fleet API partner (domain + public key).");
-                return 0;
+                return await PartnerCommand.RunAsync(rest, ct).ConfigureAwait(false);
 
             case "vehicles":
                 return await VehiclesCommand.RunAsync(rest, ct).ConfigureAwait(false);
 
             case "data":
                 return await DataCommand.RunAsync(rest, ct).ConfigureAwait(false);
+
+            case "wake":
+                return await WakeCommand.RunAsync(rest, ct).ConfigureAwait(false);
 
             default:
                 Console.Error.WriteLine($"Unknown command: '{command}'.");
@@ -52,12 +53,6 @@ internal static class CliApp
     private static bool IsHelpFlag(string arg) =>
         arg is "--help" or "-h" or "-?" or "help";
 
-    private static void PrintComingSoon(string command, string milestone, string description)
-    {
-        Console.WriteLine($"'{command}' is coming in {milestone}.");
-        Console.WriteLine($"  {description}");
-    }
-
     private static void PrintUsage(TextWriter? writer = null)
     {
         writer ??= Console.Out;
@@ -69,11 +64,21 @@ internal static class CliApp
               coil <command> [options]
 
             Commands:
+              keys        Generate the P-256 keypair for partner registration / signed commands.
+              partner     Register your application with Tesla, inspect the registered key.
               login       Run the OAuth authorization-code + PKCE flow via a local loopback redirect.
               vehicles    List the vehicles on the authenticated account.
               data        Fetch a vehicle data snapshot (battery, drive, climate, vehicle state).
-              keys        Generate a Vehicle Command signing keypair.        (coming in M3)
-              partner     Register / manage your Tesla partner account.      (coming in M3)
+              wake        Wake a sleeping vehicle.
+
+            First-time setup:
+              coil keys generate
+              # publish the public key at https://<domain>/.well-known/appspecific/com.tesla.3p.public-key.pem
+              coil partner register --domain <domain> --client-secret <secret>
+              coil login
+
+            'keys' / 'partner' options:
+              Run `coil keys --help` or `coil partner --help`.
 
             'login' options:
               --client-id <id>          OAuth client id                       (or env COIL_CLIENT_ID)

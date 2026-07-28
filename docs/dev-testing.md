@@ -1,7 +1,29 @@
 # Lokales Live-Testing (M2 read endpoints)
 
 Anleitung, um `coil login` → `coil vehicles` / `coil data <VIN>` gegen ein echtes Fahrzeug zu testen.
-Stand: nach M2. Kein `coil`-Global-Tool installiert → Aufruf via `dotnet run`.
+Stand: nach M2 + Partner-Onboarding. Kein `coil`-Global-Tool installiert → Aufruf via `dotnet run`.
+
+## 0. Partner-Registrierung (einmalig, VOR dem ersten Login)
+
+Tesla verlangt eine einmalige Partner-Registrierung mit einem öffentlich gehosteten Public Key,
+bevor die Fleet API für die eigene Anwendung nutzbar ist. Ohne diesen Schritt schlagen selbst
+Read-Calls fehl.
+
+```bash
+dotnet run --project tools/Coil.Cli -c Release -- keys generate
+# public-key.pem so veröffentlichen, dass diese URL sie ausliefert:
+#   https://<domain>/.well-known/appspecific/com.tesla.3p.public-key.pem
+curl -fsS https://<domain>/.well-known/appspecific/com.tesla.3p.public-key.pem   # prüfen!
+
+dotnet run --project tools/Coil.Cli -c Release -- partner register   --domain <domain> --region eu
+dotnet run --project tools/Coil.Cli -c Release -- partner public-key --domain <domain> --region eu
+```
+
+Die Domain muss zur Root-Domain einer **Allowed Origin** auf developer.tesla.com passen.
+Details und Fehlerbilder: [`articles/partner-onboarding.md`](./articles/partner-onboarding.md).
+
+> **Pro Region registrieren.** Eine Registrierung gegen den EU-Host gilt *nicht* für den NA-Host —
+> Calls in eine nicht registrierte Region scheitern mit Region-Fehlern, obwohl die Region stimmt.
 
 ## 1. Client-ID + Secret bereitstellen (NIE committen)
 
@@ -42,12 +64,13 @@ dotnet run --project tools/Coil.Cli -c Release -- login --region eu --port 8080
 dotnet run --project tools/Coil.Cli -c Release -- vehicles
 dotnet run --project tools/Coil.Cli -c Release -- data <VIN>
 dotnet run --project tools/Coil.Cli -c Release -- data <VIN> --endpoints charge_state,drive_state
+dotnet run --project tools/Coil.Cli -c Release -- wake <VIN>
 ```
 
 ## Bekannte Stolpersteine
 
-- **Partner-Registrierung / Public Key:** Tesla verlangt i. d. R. eine einmalige Partner-Registrierung mit dem unter `https://<domain>/.well-known/appspecific/com.tesla.3p.public-key.pem` gehosteten Public Key (offener Vorbereitungspunkt #2, Domain = Subdomain von `dotnetservices.de`). Ohne das kann der Zugriff fehlschlagen. Tooling dafür (`coil keys generate` / `coil partner register`) kommt in M3.
-- **Zu verifizieren gegen echte Responses** (in [`api-deviations.md`](./api-deviations.md) eintragen): Rate-Limit-Header-Namen (`x-ratelimit-*`), Charging-History-Pfad/Shape (`api/1/dx/charging/history`), Error-Body-Shape (`{ error, error_description }`), Endpunkt-Hosts.
+- **Ohne Schritt 0 geht nichts.** Die Partner-Registrierung ist keine Formalie für später — sie ist Voraussetzung für den API-Zugriff.
+- **Zu verifizieren gegen echte Responses** (in [`api-deviations.md`](./api-deviations.md) eintragen): Rate-Limit-Header-Namen (`x-ratelimit-*`), Charging-History-Pfad/Shape (`api/1/dx/charging/history`), Endpunkt-Hosts, `vehicle_data`-`endpoints`-Trennzeichen (`;`). Der Error-Body-Shape ist inzwischen bestätigt.
 
 ## Optional: `coil` global installieren
 

@@ -22,6 +22,18 @@ internal static class CoilPaths
     /// <summary>Path to the persisted CLI session (client id + region).</summary>
     public static string SessionFile => Path.Combine(ConfigDir, "session.json");
 
+    /// <summary>Directory holding the Vehicle Command Protocol key pair.</summary>
+    public static string KeysDir => Path.Combine(ConfigDir, "keys");
+
+    /// <summary>Path to the P-256 private key (PKCS#8 PEM). Secret — owner-readable only.</summary>
+    public static string PrivateKeyFile => Path.Combine(KeysDir, "private-key.pem");
+
+    /// <summary>
+    /// Path to the public key (SubjectPublicKeyInfo PEM) — the file to publish at
+    /// <c>/.well-known/appspecific/com.tesla.3p.public-key.pem</c>.
+    /// </summary>
+    public static string PublicKeyFile => Path.Combine(KeysDir, "public-key.pem");
+
     /// <summary>
     /// Creates <see cref="ConfigDir"/> if it doesn't exist yet, restricting it to the current user on
     /// platforms that support POSIX permissions. Best-effort: failures to tighten permissions are ignored.

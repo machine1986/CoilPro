@@ -3,12 +3,18 @@ namespace Coil.Cli.Commands;
 /// <summary>Thrown for malformed CLI arguments; caught by the command and reported as a usage error.</summary>
 internal sealed class CliUsageException(string message) : Exception(message);
 
-/// <summary>Parsed options for <c>coil login</c>: CLI flags override environment variables.</summary>
+/// <summary>
+/// Parsed options for the credential-taking commands (<c>coil login</c>, <c>coil partner</c>):
+/// CLI flags override environment variables.
+/// </summary>
 internal sealed class CliOptions
 {
     public string? ClientId { get; private init; }
 
     public string? ClientSecret { get; private init; }
+
+    /// <summary>Application domain hosting the public key; used by <c>coil partner</c>.</summary>
+    public string? Domain { get; private init; }
 
     public TeslaRegion Region { get; private init; } = TeslaRegion.Europe;
 
@@ -23,6 +29,7 @@ internal sealed class CliOptions
     {
         string? clientId = Environment.GetEnvironmentVariable("COIL_CLIENT_ID");
         string? clientSecret = Environment.GetEnvironmentVariable("COIL_CLIENT_SECRET");
+        string? domain = Environment.GetEnvironmentVariable("COIL_DOMAIN");
         var region = ParseRegion(Environment.GetEnvironmentVariable("COIL_REGION")) ?? TeslaRegion.Europe;
         TeslaScopes? scopes = null;
         var port = 0;
@@ -57,6 +64,9 @@ internal sealed class CliOptions
                 case "--client-secret":
                     clientSecret = NextValue();
                     break;
+                case "--domain":
+                    domain = NextValue();
+                    break;
                 case "--region":
                     var regionValue = NextValue();
                     region = ParseRegion(regionValue) ?? throw new CliUsageException($"Invalid --region '{regionValue}' (use 'eu' or 'na').");
@@ -87,6 +97,7 @@ internal sealed class CliOptions
         {
             ClientId = clientId,
             ClientSecret = clientSecret,
+            Domain = domain,
             Region = region,
             Scopes = scopes ?? (TeslaScopes.Openid | TeslaScopes.OfflineAccess),
             Port = port,
