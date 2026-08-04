@@ -25,6 +25,13 @@ jobs:
   pack-and-publish:
     runs-on: ubuntu-latest
 
+    # The `secrets` context is NOT available in a step-level `if:` (only
+    # github/needs/env/steps/... are), so the API key is mapped into the job
+    # environment here. That makes it readable both as `env.NUGET_API_KEY` in
+    # the guard condition and as `$NUGET_API_KEY` inside the push step.
+    env:
+      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -83,19 +90,16 @@ jobs:
 
       # Guarded so a run in a repo/fork where the secret hasn't been
       # configured yet (see the header comment) never attempts a push with an
-      # empty API key. This step (and this whole workflow) only ever runs as
-      # a genuine GitHub Actions run — the runner sets `GITHUB_ACTIONS=true`
-      # in the process environment automatically for every job (the same
-      # variable Directory.Build.props checks for ContinuousIntegrationBuild)
-      # — so the explicit secrets check below is what actually gates the push.
+      # empty API key. The key is read from the job `env` mapped above, not
+      # from `secrets` directly — see the comment there.
       # `dotnet nuget push` accepts a glob for the package path and, for each
       # matched .nupkg, automatically also pushes the sibling .snupkg symbol
       # package (produced because SymbolPackageFormat=snupkg is set in
       # Directory.Build.props) — no separate push step is needed for those.
       - name: Push packages to NuGet.org
-        if: ${{ secrets.NUGET_API_KEY != '' }}
+        if: ${{ env.NUGET_API_KEY != '' }}
         run: >
           dotnet nuget push "${{ env.PACKAGE_OUTPUT_DIR }}/*.nupkg"
-          --api-key ${{ secrets.NUGET_API_KEY }}
+          --api-key "$NUGET_API_KEY"
           --source https://api.nuget.org/v3/index.json
           --skip-duplicate
