@@ -32,7 +32,7 @@ jobs:
           fetch-depth: 0
 
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v6
         with:
           # Libraries multi-target net8.0;net10.0 (see Directory.Build.props) —
           # both SDKs/runtimes are needed to restore, build, and run tests.
