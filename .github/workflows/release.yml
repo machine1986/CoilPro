@@ -27,7 +27,7 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           # MinVer derives the package version from git tags, so the full
           # history/tags (not just the tagged commit) must be available.
