@@ -13,6 +13,18 @@ updates:
     labels:
       - "dependencies"
       - "nuget"
+    ignore:
+      # Coil.AspNetCore multi-targetet net8.0;net10.0. Diese drei Pakete bilden
+      # eine Familie und müssen auf der 8.0.x-Linie bleiben, solange net8.0 ein
+      # Zielframework ist — sonst ziehen net8.0-Konsumenten .NET-10-Assemblies
+      # (genau das ist über PR #15 passiert). Patch-/Minor-Updates innerhalb 8.0.x
+      # laufen weiter; das Hochziehen auf 10.x ist eine bewusste Entscheidung.
+      - dependency-name: "Microsoft.Extensions.DependencyInjection.Abstractions"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Microsoft.Extensions.Http"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "Microsoft.Extensions.Options"
+        update-types: ["version-update:semver-major"]
 
   # Actions used in .github/workflows/*.yml (e.g. actions/checkout, actions/setup-dotnet).
   - package-ecosystem: "github-actions"
