@@ -22,11 +22,24 @@
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>tesla;fleet-api;ev;electric-vehicle;dotnet</PackageTags>
+    <!-- Dateinamen IM Paket; die Quellen liegen unter anderem Namen (siehe ItemGroup unten). -->
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
   </PropertyGroup>
+
+  <!--
+    Das Root-README.md beschreibt das Gesamtvorhaben (SDK + Begleitprojekte) und taugt nicht als
+    Paketbeschreibung — deshalb ein eigenes README.nuget.md, das als README.md ins Paket wandert.
+    assets/icon.png ist ein Platzhalter-Mark, kein finales Logo.
+  -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)README.nuget.md" Pack="true" PackagePath="README.md" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)assets/icon.png" Pack="true" PackagePath="icon.png" Visible="false" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MinVer" Version="7.0.0" PrivateAssets="all" />
