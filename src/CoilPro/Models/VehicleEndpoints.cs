@@ -75,11 +75,21 @@ public sealed record VehicleAlert
     /// <summary>Alert name (<c>name</c>).</summary>
     [JsonPropertyName("name")] public string? Name { get; init; }
 
-    /// <summary>When the alert was raised (<c>time</c>, ISO 8601).</summary>
-    [JsonPropertyName("time")] public DateTimeOffset? Time { get; init; }
+    /// <summary>
+    /// When the alert was raised, as sent (<c>time</c>). Live responses use RFC 1123
+    /// (<c>Tue, 24 Nov 2026 09:27:27 +0000</c>), not ISO 8601 — see <see cref="TimeUtc"/>.
+    /// </summary>
+    [JsonPropertyName("time")] public string? Time { get; init; }
 
-    /// <summary>Intended audiences such as <c>customer</c>, <c>service-fix</c> (<c>audience</c>).</summary>
-    [JsonPropertyName("audience")] public IReadOnlyList<string>? Audience { get; init; }
+    /// <summary><see cref="Time"/> parsed (RFC 1123 or ISO 8601); null when absent or unparseable.</summary>
+    [JsonIgnore]
+    public DateTimeOffset? TimeUtc =>
+        DateTimeOffset.TryParse(Time, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal, out var value)
+            ? value
+            : null;
+
+    /// <summary>Intended audiences such as <c>customer</c>, <c>service</c> (<c>audiences</c>; the docs say <c>audience</c>).</summary>
+    [JsonPropertyName("audiences")] public IReadOnlyList<string>? Audiences { get; init; }
 
     /// <summary>Additional description text (<c>user_text</c>).</summary>
     [JsonPropertyName("user_text")] public string? UserText { get; init; }

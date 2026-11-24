@@ -124,29 +124,30 @@ public sealed partial class CoilProClient
     /// <inheritdoc />
     public async Task<IReadOnlyList<VehicleOption>> GetVehicleOptionsAsync(string vin, CancellationToken ct = default)
     {
-        var result = await _executor.SendAsync<VehicleOptionsPayload>(HttpMethod.Get, VinQuery("api/1/dx/vehicles/options", vin), null, ct).ConfigureAwait(false);
-        return result.Value?.Codes ?? [];
+        // dx endpoints answer without the { "response": ... } envelope (confirmed live 2026-11-24); accept both.
+        var payload = await GetTolerantAsync<VehicleOptionsPayload>(VinQuery("api/1/dx/vehicles/options", vin), ct).ConfigureAwait(false);
+        return payload?.Codes ?? [];
     }
 
     /// <inheritdoc />
     public async Task<WarrantyDetails> GetWarrantyDetailsAsync(string vin, CancellationToken ct = default)
     {
-        var result = await _executor.SendAsync<WarrantyDetails>(HttpMethod.Get, VinQuery("api/1/dx/warranty/details", vin), null, ct).ConfigureAwait(false);
-        return result.Value ?? throw EmptyResponse(result.StatusCode, "dx/warranty/details");
+        return await GetTolerantAsync<WarrantyDetails>(VinQuery("api/1/dx/warranty/details", vin), ct).ConfigureAwait(false)
+            ?? throw EmptyResponse(System.Net.HttpStatusCode.OK, "dx/warranty/details");
     }
 
     /// <inheritdoc />
     public async Task<SubscriptionEligibility> GetSubscriptionEligibilityAsync(string vin, CancellationToken ct = default)
     {
-        var result = await _executor.SendAsync<SubscriptionEligibility>(HttpMethod.Get, VinQuery("api/1/dx/vehicles/subscriptions/eligibility", vin), null, ct).ConfigureAwait(false);
-        return result.Value ?? throw EmptyResponse(result.StatusCode, "dx/vehicles/subscriptions/eligibility");
+        return await GetTolerantAsync<SubscriptionEligibility>(VinQuery("api/1/dx/vehicles/subscriptions/eligibility", vin), ct).ConfigureAwait(false)
+            ?? throw EmptyResponse(System.Net.HttpStatusCode.OK, "dx/vehicles/subscriptions/eligibility");
     }
 
     /// <inheritdoc />
     public async Task<UpgradeEligibility> GetUpgradeEligibilityAsync(string vin, CancellationToken ct = default)
     {
-        var result = await _executor.SendAsync<UpgradeEligibility>(HttpMethod.Get, VinQuery("api/1/dx/vehicles/upgrades/eligibility", vin), null, ct).ConfigureAwait(false);
-        return result.Value ?? throw EmptyResponse(result.StatusCode, "dx/vehicles/upgrades/eligibility");
+        return await GetTolerantAsync<UpgradeEligibility>(VinQuery("api/1/dx/vehicles/upgrades/eligibility", vin), ct).ConfigureAwait(false)
+            ?? throw EmptyResponse(System.Net.HttpStatusCode.OK, "dx/vehicles/upgrades/eligibility");
     }
 
     /// <inheritdoc />

@@ -115,16 +115,17 @@ public class VehicleEndpointsTests
     public async Task GetRecentAlerts_UnwrapsAlertList()
     {
         var (client, handler) = Setup("""
-            {"response":{"recent_alerts":[{"name":"Name_Of_The_Alert","time":"2021-03-19T22:01:15.101+00:00","audience":["service-fix","customer"],"user_text":"text"}]}}
+            {"response":{"recent_alerts":[{"name":"UI_a213_ISADisabled","time":"Tue, 24 Nov 2026 09:27:27 +0000","audiences":["customer","service"],"user_text":"Intelligent Speed Assist disabled"}]}}
             """);
 
         var alerts = await client.GetRecentAlertsAsync(Vin);
 
         AssertRequest(handler, HttpMethod.Get, $"/api/1/vehicles/{Vin}/recent_alerts");
         var alert = Assert.Single(alerts);
-        Assert.Equal("Name_Of_The_Alert", alert.Name);
-        Assert.Equal(new DateTimeOffset(2021, 3, 19, 22, 1, 15, 101, TimeSpan.Zero), alert.Time);
-        Assert.Equal(["service-fix", "customer"], alert.Audience);
+        Assert.Equal("UI_a213_ISADisabled", alert.Name);
+        // Shape as observed live on 2026-11-24 (RFC 1123 time, "audiences").
+        Assert.Equal(new DateTimeOffset(2026, 11, 24, 9, 27, 27, TimeSpan.Zero), alert.TimeUtc);
+        Assert.Equal(["customer", "service"], alert.Audiences);
     }
 
     [Theory]
