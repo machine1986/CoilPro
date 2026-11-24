@@ -10,9 +10,9 @@ without Tesla's Go-based `tesla-http-proxy`.
 > **Unofficial — not affiliated with, endorsed by, or sponsored by Tesla, Inc.**
 > "Tesla" is a trademark of Tesla, Inc. and is used here only to describe API compatibility.
 
-> **Status (0.2.0).** Verified live against the EU region with one Model Y (REST endpoints and a few signed
-> commands). Energy endpoints are not yet tested live; other regions, vehicles and most commands are covered by
-> tests only. Expect API changes before 1.0.
+> **Status (0.2.0).** Verified live against the EU region with one Model Y and two Wall Connectors (vehicle, user,
+> charging and Wall Connector endpoints, and a set of signed commands). Powerwall/solar, business accounts, other
+> regions and vehicles, and most other commands are covered by tests only. Expect API changes before 1.0.
 
 Target framework: **.NET 10**. License: **MIT**.
 

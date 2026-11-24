@@ -121,6 +121,10 @@ public sealed record EnergyLiveStatus
     [JsonPropertyName("timestamp")]
     public DateTimeOffset? Timestamp { get; init; }
 
+    /// <summary>Live state of the site's Wall Connectors (<c>wall_connectors</c>).</summary>
+    [JsonPropertyName("wall_connectors")]
+    public IReadOnlyList<WallConnectorState>? WallConnectors { get; init; }
+
     /// <summary>Fields not modeled yet, preserved for forward compatibility.</summary>
     [JsonExtensionData]
     public IDictionary<string, JsonElement>? AdditionalData { get; init; }
@@ -324,6 +328,22 @@ public sealed record WallConnectorState
     /// <summary>Charging power in W.</summary>
     [JsonPropertyName("wall_connector_power")]
     public double? Power { get; init; }
+
+    /// <summary>Numeric fault state code (<c>wall_connector_fault_state</c>; meaning not documented, 2 observed when idle).</summary>
+    [JsonPropertyName("wall_connector_fault_state")]
+    public int? FaultState { get; init; }
+
+    /// <summary>OCPP connection status code (<c>ocpp_status</c>).</summary>
+    [JsonPropertyName("ocpp_status")]
+    public int? OcppStatus { get; init; }
+
+    /// <summary>Powershare session state code (<c>powershare_session_state</c>).</summary>
+    [JsonPropertyName("powershare_session_state")]
+    public int? PowershareSessionState { get; init; }
+
+    /// <summary>Dry-contact control state code (<c>dry_contact_control_state</c>).</summary>
+    [JsonPropertyName("dry_contact_control_state")]
+    public int? DryContactControlState { get; init; }
 
     /// <summary>Fields not modeled yet, preserved for forward compatibility.</summary>
     [JsonExtensionData]
@@ -601,6 +621,14 @@ public sealed record EnergyChargeSession
     [JsonPropertyName("energy_added_wh")]
     public double? EnergyAddedWh { get; init; }
 
+    /// <summary>Wall Connector device id that delivered the session (<c>target_id.text</c>).</summary>
+    [JsonPropertyName("target_id")]
+    public EnergyTargetId? TargetId { get; init; }
+
+    /// <summary>Wall Connector DIN (<c>din</c>).</summary>
+    [JsonPropertyName("din")]
+    public string? Din { get; init; }
+
     /// <summary>Start time as a <see cref="DateTimeOffset"/> (UTC), when present.</summary>
     [JsonIgnore]
     public DateTimeOffset? StartTime => ChargeStartTime?.Seconds is { } s ? DateTimeOffset.FromUnixTimeSeconds(s) : null;
@@ -671,4 +699,12 @@ public enum GridExportRule
     PvOnly,
     /// <summary><c>never</c>: no export.</summary>
     Never,
+}
+
+/// <summary>Identifier wrapper <c>{ "text": "…" }</c> used by energy telemetry history.</summary>
+public sealed record EnergyTargetId
+{
+    /// <summary>The id (<c>text</c>).</summary>
+    [JsonPropertyName("text")]
+    public string? Text { get; init; }
 }

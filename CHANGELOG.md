@@ -6,12 +6,13 @@ All notable changes to CoilPro are documented here. The format follows
 
 ## [Unreleased]
 
-## [0.2.0] - date TBD
+## [0.2.0] - 2026-11-24
 
 Towards the complete Fleet API: all vehicle, user, charging, energy, partner and Fleet Telemetry endpoints, about 70
-signed commands, and CLI and DI support for all of it. First live run on the EU region with one Model Y covered the
-vehicle and user REST endpoints; **energy endpoints, business-account endpoints and most new commands are covered by
-tests only** (see [`docs/api-deviations.md`](./docs/api-deviations.md)).
+signed commands, and CLI and DI support for all of it. Live-verified on the EU region with one Model Y and two Wall
+Connectors: vehicle, user, charging and Wall Connector endpoints, and a set of the new commands (Sentry, cabin overheat
+temperature, charge schedules, seat heater, windows, climate). **Business-account endpoints, Powerwall/solar and most
+other new commands are covered by tests only** (see [`docs/api-deviations.md`](./docs/api-deviations.md)).
 
 ### Added
 
@@ -32,11 +33,13 @@ tests only** (see [`docs/api-deviations.md`](./docs/api-deviations.md)).
 - `GetChargingHistoryAsync` now takes an optional `ChargingHistoryQuery` (VIN, time range, paging, sort) and returns `ChargingHistoryPage` with `Data`, `TotalResults` and `HasMoreData`.
 - `Vehicle` and `VehicleData` (and their sub-states) model many more fields; unknown fields are still preserved in `AdditionalData`.
 - `VehicleAlert.Time` is the raw string as Tesla sends it (RFC 1123, not ISO 8601); the parsed value is available as `VehicleAlert.TimeUtc`. The list field is `Audiences`.
-- Fixed in the docs and READMEs: DI methods are `AddCoilProApi` and `AddCoilProCommands`.
+- Fixed in the docs and READMEs: DI methods are `AddCoilProApi` and `AddCoilProCommands` (0.1.0's package readme said `AddCoilProProApi`).
+- `TeslaAuthOptions.PromptMissingScopes` sends `prompt_missing_scopes=true`; without it Tesla reuses an earlier consent and drops newly requested scopes. `coilpro login` sets it.
+- Parsing follows the live API where it differs from Tesla's docs: `dx/*` endpoints without envelope, `mobile_enabled` as a bare boolean, schedule blocks with `{seconds, nanos}` timestamps, `GetTariffRateAsync` returns null for sites without gateway.
 
 ### Known limitations
 
-- Energy endpoints are untested against real energy hardware; business-account endpoints (`enterprise`, fleet charging sessions) are untested live.
+- Powerwall/solar endpoints and energy settings are untested against real hardware (only Wall Connector sites were available); business-account endpoints (`enterprise`, fleet charging sessions) are untested live.
 - Navigation GPS, Supercharger and waypoint commands are unverified on protocol-only vehicles.
 - Not supported: BLE-only key enrollment, boombox, steering wheel heat levels and calendar sync (not in Tesla's published protocol definitions).
 - The Fleet Telemetry server is not part of CoilPro.

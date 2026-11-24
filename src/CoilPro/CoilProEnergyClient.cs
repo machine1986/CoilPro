@@ -106,8 +106,18 @@ public sealed class CoilProEnergyClient : ICoilProEnergyClient
         ?? throw Empty("charger_live_status");
 
     /// <inheritdoc />
-    public Task<EnergyTariff?> GetTariffRateAsync(long energySiteId, CancellationToken ct = default) =>
-        GetAsync<EnergyTariff>(SitePath(energySiteId, "tariff_rate"), ct);
+    public async Task<EnergyTariff?> GetTariffRateAsync(long energySiteId, CancellationToken ct = default)
+    {
+        try
+        {
+            return await GetAsync<EnergyTariff>(SitePath(energySiteId, "tariff_rate"), ct).ConfigureAwait(false);
+        }
+        catch (TeslaApiException ex) when (ex.StatusCode == System.Net.HttpStatusCode.BadRequest && ex.ResponseBody?.Contains("Not found", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            // Sites without a gateway (e.g. Wall Connector only) answer 400 "Not found" (observed live 2026-11-24): no tariff.
+            return null;
+        }
+    }
 
     /// <inheritdoc />
     public async Task<EnergyBackupHistory> GetBackupHistoryAsync(long energySiteId, EnergyHistoryQuery query, CancellationToken ct = default)

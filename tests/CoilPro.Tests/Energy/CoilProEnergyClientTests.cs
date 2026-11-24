@@ -367,4 +367,30 @@ public sealed class CoilProEnergyClientTests
         await Create(handler).SetStormModeAsync(SiteId, false);
         Assert.Single(handler.Requests);
     }
+
+    [Fact]
+    public async Task GetWallConnectorLiveStatus_ParsesLiveShape()
+    {
+        // As observed live on 2026-11-24 for a Wall Connector-only site.
+        var handler = StubHttpMessageHandler.ReturningJson("""
+            {"response":{"wall_connectors":[{"din":"1529455-42-G--PGT0000000000","wall_connector_state":2,"wall_connector_power":0,"wall_connector_fault_state":2,"ocpp_status":1,"powershare_session_state":0,"dry_contact_control_state":0}]}}
+            """);
+
+        var status = await Create(handler).GetWallConnectorLiveStatusAsync(42);
+
+        var wc = Assert.Single(status.WallConnectors!);
+        Assert.Equal(2, wc.State);
+        Assert.Equal(2, wc.FaultState);
+        Assert.Equal(1, wc.OcppStatus);
+    }
+
+    [Fact]
+    public async Task GetTariffRate_WallConnectorOnlySite_400NotFound_ReturnsNull()
+    {
+        var handler = StubHttpMessageHandler.ReturningJson(
+            """{"response":null,"error":"https://powergate.prd.sn.tesla.services:443/api/v4/energy_site/tariff_rate => {Message: \"Not found\", Status: 400}"}""",
+            System.Net.HttpStatusCode.BadRequest);
+
+        Assert.Null(await Create(handler).GetTariffRateAsync(42));
+    }
 }

@@ -22,13 +22,13 @@ public interface ICoilProEnergyClient
     /// <summary>Summary status of the site (<c>GET …/site_status</c>).</summary>
     Task<EnergySiteStatus> GetSiteStatusAsync(long energySiteId, CancellationToken ct = default);
 
-    /// <summary>Estimated backup time left in hours (<c>GET …/backup_time_remaining</c>).</summary>
+    /// <summary>Estimated backup time left in hours (<c>GET …/backup_time_remaining</c>). Sites without a battery answer 400 (TeslaApiException).</summary>
     Task<double> GetBackupTimeRemainingAsync(long energySiteId, CancellationToken ct = default);
 
     /// <summary>Live state of the site's Wall Connectors (<c>GET …/charger_live_status</c>).</summary>
     Task<WallConnectorLiveStatus> GetWallConnectorLiveStatusAsync(long energySiteId, CancellationToken ct = default);
 
-    /// <summary>The site's utility tariff (<c>GET …/tariff_rate</c>). Null when the site has none (e.g. Tesla Electric).</summary>
+    /// <summary>The site's utility tariff (<c>GET …/tariff_rate</c>). Null when the site has none (Tesla Electric, or a site without gateway such as a Wall Connector alone).</summary>
     Task<EnergyTariff?> GetTariffRateAsync(long energySiteId, CancellationToken ct = default);
 
     /// <summary>Backup (grid outage) events (<c>GET …/calendar_history?kind=backup</c>).</summary>

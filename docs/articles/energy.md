@@ -4,7 +4,7 @@
 
 > **Unofficial — not affiliated with Tesla, Inc.**
 
-> **Status (0.2.0).** Not yet verified against live energy hardware. The test account has Wall Connector sites, and `products` answered correctly (`resource_type: wall_connector`), but the energy-specific endpoints answered `403 Unauthorized missing scopes` because the user token had no `energy_device_data` scope at the time. Response shapes follow Tesla's documentation and are covered by tests; treat them as unconfirmed until noted in [API deviations](../api-deviations.md).
+> **Status (0.2.0).** Verified live on two Wall Connector-only sites: products, live status, site info and status, Wall Connector live status, and Wall Connector charge history (`GetChargeHistoryAsync`: start, duration and Wh per home charging session). Sites without a gateway answer the tariff with 400 "Not found" (`GetTariffRateAsync` returns null) and `GetBackupTimeRemainingAsync` with 400. Powerwall/solar reads and all energy settings follow Tesla's documentation and are covered by tests only. Energy scopes must be granted: log in with `TeslaAuthOptions.PromptMissingScopes = true` if they were added after an earlier consent. Details in [API deviations](../api-deviations.md).
 
 ## Scopes
 

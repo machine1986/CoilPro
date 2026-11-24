@@ -18,10 +18,11 @@ vehicle commands without running Tesla's Go-based `tesla-http-proxy`.
 > **Unofficial — not affiliated with, endorsed by, or sponsored by Tesla, Inc.**
 > "Tesla" is a trademark of Tesla, Inc. and is used here only to describe API compatibility.
 
-> **Status (`0.2.0`).** Verified live against the **EU region with one Model Y** (REST endpoints, partner
-> registration, and the signed commands `flash`, `lock`, `unlock`, `charge-limit`, climate on/off). The account has
-> Wall Connectors, but the **energy endpoints are not yet tested live**. Other regions, vehicle models, business-account
-> endpoints and most individual commands are covered by tests only. Expect API changes before 1.0.
+> **Status (`0.2.0`).** Verified live against the **EU region with one Model Y and two Wall Connectors**: vehicle,
+> user and charging REST endpoints, Wall Connector energy endpoints, partner registration, and signed commands
+> (`flash`, `lock`/`unlock`, `charge-limit`, climate, Sentry, seat heater, windows, cabin overheat temperature, charge
+> schedules). Powerwall/solar, business-account endpoints, other regions and vehicles, and most other commands are
+> covered by tests only. Expect API changes before 1.0.
 > Details: [`docs/api-deviations.md`](./docs/api-deviations.md).
 
 ## Features
