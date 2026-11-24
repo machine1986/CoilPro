@@ -22,15 +22,11 @@
         "files": ["api/**.yml", "api/index.md"]
       },
       {
-        "files": ["*.md", "toc.yml"]
+        "files": ["*.md", "toc.yml"],
+        "exclude": ["dev-testing.md"]
       },
       {
         "files": ["articles/**.md", "articles/**/toc.yml"]
-      }
-    ],
-    "resource": [
-      {
-        "files": ["images/**"]
       }
     ],
     "output": "_site",

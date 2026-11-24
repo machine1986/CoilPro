@@ -1,6 +1,6 @@
 # Reading Vehicle Data
 
-`ICoilClient` is the read-access surface for the Tesla Fleet API's vehicle endpoints: list the vehicles on an account, fetch `vehicle_data`, wake a sleeping car, and pull charging history. This article builds on [Getting Started](getting-started.md) — you need a working `ITeslaAuthClient` (or stored tokens) before any of this works.
+`ICoilClient` is the read-access surface for the Tesla Fleet API's vehicle endpoints: list the vehicles on an account, fetch `vehicle_data`, wake a sleeping car, and pull charging history. This article builds on [Getting Started](getting-started.md) — you need a working `ITeslaAuthClient` (or stored tokens) before any of this works. Verified live against the EU region with one vehicle.
 
 > **The Fleet API is pay-per-use.** Every `vehicle_data` call costs money, and cost scales with which data segments you request and whether the vehicle had to be woken up first. The single most important habit in this article is: **request only the segments you need, and never wake a sleeping car just to read data.**
 
@@ -81,6 +81,8 @@ var data = await coil.GetVehicleDataAsync(
 
 `VehicleDataEndpoint` is a `[Flags]` enum: `ChargeState`, `ClimateState`, `DriveState`, `GuiSettings`, `VehicleState`, `VehicleConfig`, `LocationData`, `ClosuresState`. Combine with `|`. `.ToQueryValue()` turns the combination into the semicolon-separated string the `endpoints` query parameter expects (e.g. `"charge_state;drive_state;climate_state"`) — you won't normally call it yourself, `CoilClient` does it internally, but it's public if you need to inspect or log the resulting query value.
 
+Location fields (`latitude`/`longitude` in `drive_state`) are only returned when `VehicleDataEndpoint.LocationData` is requested as well and the token has the `vehicle_location` scope.
+
 Only sub-states you asked for (or that the API includes by default) are populated — everything else is `null`:
 
 ```csharp
@@ -110,7 +112,7 @@ Fields Coil.NET doesn't model explicitly are never dropped: every state record (
 
 ### Don't wake sleeping cars just to read data
 
-Calling `vehicle_data` (or `WakeUpAsync`) against a car that's `asleep` forces it to wake, which costs the vehicle real battery and — on the Fleet API — real money. Check `Vehicle.State` first, and only call `WakeUpAsync` when you actually need fresh data badly enough to justify it:
+`vehicle_data` requires an awake vehicle — a request against an `asleep` car fails instead of waking it. `WakeUpAsync` does wake it, which costs the vehicle battery and, on the Fleet API, money. Check `Vehicle.State` first, and only call `WakeUpAsync` when you actually need fresh data badly enough to justify it:
 
 ```csharp
 if (vehicle.State == "asleep")
@@ -150,7 +152,7 @@ catch (TeslaApiException ex)
 
 ## Watching your rate-limit budget
 
-`ICoilClient.LastRateLimit` holds the `RateLimitInfo` parsed from the most recent response's headers — `null` if no relevant headers were present. Surface it to anyone who needs to know how much budget is left before the window resets:
+`ICoilClient.LastRateLimit` holds the `RateLimitInfo` parsed from the most recent response's headers — `null` if no relevant headers were present. Tesla reports one limit/remaining/reset triple per bucket (e.g. `ratelimit-device-data-per-vehicle-*`); `RateLimitInfo` exposes the bucket as `Category` and picks the one with the fewest remaining requests. Surface it to anyone who needs to know how much budget is left before the window resets:
 
 ```csharp
 _ = await coil.GetVehiclesAsync();
@@ -165,7 +167,7 @@ if (coil.LastRateLimit is { } rateLimit)
 
 ## The `coil` CLI
 
-For quick smoke tests without writing any code, `tools/Coil.Cli` (installable as `dotnet tool install -g coil`) ships two read commands built on `ICoilClient`, alongside `coil login`:
+For quick smoke tests without writing any code, `tools/Coil.Cli` (installed with `dotnet tool install --global Coil.Cli`) ships two read commands built on `ICoilClient`, alongside `coil login`:
 
 ```bash
 coil login              # OAuth flow via a local loopback redirect; tokens are persisted to ~/.coil/
@@ -173,9 +175,9 @@ coil vehicles           # list vehicles on the account (Vehicle.Id, Vin, Display
 coil data <vin> --endpoints charge_state,drive_state   # vehicle_data, filtered to the given segments
 ```
 
-`coil data` without `--endpoints` requests the API's default payload — pass `--endpoints` with a comma-separated list of segment names (matching the `VehicleDataEndpoint` members: `charge_state`, `climate_state`, `drive_state`, `gui_settings`, `vehicle_state`, `vehicle_config`, `location_data`, `closures_state`) to keep calls cheap and fast, exactly as you would with the SDK's flags enum. Check `coil --help` / `coil data --help` for the exact flags shipped in your installed version.
+`coil data` without `--endpoints` requests `charge_state`, `drive_state`, `climate_state` and `vehicle_state` — pass `--endpoints` with a comma-separated list of segment names (matching the `VehicleDataEndpoint` members: `charge_state`, `climate_state`, `drive_state`, `gui_settings`, `vehicle_state`, `vehicle_config`, `location_data`, `closures_state`) to keep calls cheap and fast, exactly as you would with the SDK's flags enum. Check `coil --help` / `coil data --help` for the exact flags shipped in your installed version.
 
 ## Next steps
 
-- Sending commands (charge limit, wake, climate) needs the Vehicle Command Protocol and Virtual Key pairing — see [Partner Onboarding](partner-onboarding.md) and the M3 milestone.
-- Any assumption in this article that's still unverified against a real account (endpoint paths, header names, error/charging-history response shapes) is tracked in [`docs/api-deviations.md`](../api-deviations.md).
+- Sending commands (charge limit, lock, climate) needs the Vehicle Command Protocol and Virtual Key pairing — see [Signed Vehicle Commands](commands.md) and [Partner Onboarding](partner-onboarding.md).
+- Where the live API differed from the planning spec (the `;` separator in `endpoints`, rate-limit header names, the charging-history response shape) the corrections are recorded in [`docs/api-deviations.md`](../api-deviations.md).
