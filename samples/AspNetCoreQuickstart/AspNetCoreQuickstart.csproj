@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Coil\Coil.csproj" />
+    <ProjectReference Include="..\..\src\Coil.Commands\Coil.Commands.csproj" />
+    <ProjectReference Include="..\..\src\Coil.AspNetCore\Coil.AspNetCore.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- Enables `dotnet user-secrets` for this sample (keeps the client secret / private key out of git). -->
+    <UserSecretsId>coil-aspnetcore-quickstart</UserSecretsId>
+    <!-- Sample app, not a library - never publish this to NuGet. -->
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+
+</Project>

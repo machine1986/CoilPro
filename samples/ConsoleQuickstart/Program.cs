@@ -1,89 +1,182 @@
-// ConsoleQuickstart — walks through the Coil.NET authorization-code + PKCE flow end to end.
+// ConsoleQuickstart - end-to-end Coil.NET walkthrough:
+//   1. login (authorization code + PKCE, loopback listener on http://localhost:8080/callback)
+//   2. list vehicles
+//   3. read charge_state / drive_state / location_data
+//   4. OPTIONAL: send a harmless signed command (flash lights)
 //
-// This sample builds and runs WITHOUT real Tesla credentials: it falls back to safe
-// placeholders so you can see the authorization URL shape immediately. To complete a real
-// login, register a Tesla developer application at https://developer.tesla.com/en_US/dashboard
-// and set these environment variables before running:
+// Runs WITHOUT credentials: it then only prints the authorization URL and what it would do.
 //
-//   TESLA_CLIENT_ID      Your application's Client ID (required for a real login)
-//   TESLA_CLIENT_SECRET  Your application's Client Secret (optional; confidential clients only)
-//   TESLA_REDIRECT_URI   A redirect URI registered on the application
-//                         (default: http://localhost:8080/callback)
-//   TESLA_REGION         "NorthAmerica" or "Europe" (default: Europe)
+// Environment variables
+//   TESLA_CLIENT_ID             Application Client ID (required for a real login)
+//   TESLA_CLIENT_SECRET         Client secret (optional)
+//   TESLA_REDIRECT_URI          Must be a localhost URI registered on your app
+//                               (default: http://localhost:8080/callback)
+//   TESLA_REGION                "NorthAmerica" or "Europe" (default: Europe)
+//   COIL_PRIVATE_KEY_PEM_FILE   Path to the P-256 private key PEM (see `coil keys generate`).
+//                               Needed for signed commands.
+//   COIL_SAMPLE_VIN             17-character VIN of the vehicle to flash. Needed for commands.
+//
+// Signed commands additionally require: the matching public key registered via partner
+// registration, and the virtual key paired in the car via https://tesla.com/_ak/<your-domain>.
 //
 // Run with:  dotnet run --project samples/ConsoleQuickstart
+using System.Net;
+using System.Text;
 using Coil;
+using Coil.Commands;
 
 var clientId = Environment.GetEnvironmentVariable("TESLA_CLIENT_ID") ?? "REPLACE_WITH_YOUR_CLIENT_ID";
-var clientSecret = Environment.GetEnvironmentVariable("TESLA_CLIENT_SECRET");
-var redirectUri = Environment.GetEnvironmentVariable("TESLA_REDIRECT_URI") ?? "http://localhost:8080/callback";
-var region = Enum.TryParse<TeslaRegion>(
-    Environment.GetEnvironmentVariable("TESLA_REGION"),
-    ignoreCase: true,
-    out var parsedRegion)
-    ? parsedRegion
+var redirectUri = new Uri(Environment.GetEnvironmentVariable("TESLA_REDIRECT_URI") ?? "http://localhost:8080/callback");
+var region = Enum.TryParse<TeslaRegion>(Environment.GetEnvironmentVariable("TESLA_REGION"), true, out var r)
+    ? r
     : TeslaRegion.Europe;
+var keyFile = Environment.GetEnvironmentVariable("COIL_PRIVATE_KEY_PEM_FILE");
+var vin = Environment.GetEnvironmentVariable("COIL_SAMPLE_VIN");
+var canSendCommand = !string.IsNullOrWhiteSpace(keyFile) && !string.IsNullOrWhiteSpace(vin);
+var hasCredentials = clientId != "REPLACE_WITH_YOUR_CLIENT_ID";
 
-var options = new TeslaAuthOptions
+var authOptions = new TeslaAuthOptions
 {
     ClientId = clientId,
-    ClientSecret = clientSecret,
-    RedirectUri = new Uri(redirectUri),
+    ClientSecret = Environment.GetEnvironmentVariable("TESLA_CLIENT_SECRET"),
+    RedirectUri = redirectUri,
     Region = region,
-    // openid + offline_access give you an id token and a refresh token; vehicle_device_data
-    // lets a later call read vehicle state. Combine flags freely — see TeslaScopes.
-    Scopes = TeslaScopes.Openid | TeslaScopes.OfflineAccess | TeslaScopes.VehicleDeviceData,
+    // Request only what you need. Commands need vehicle_cmds (and vehicle_charging_cmds for charging).
+    Scopes = TeslaScopes.Openid | TeslaScopes.OfflineAccess | TeslaScopes.VehicleDeviceData
+           | TeslaScopes.VehicleLocation | TeslaScopes.VehicleCmds | TeslaScopes.VehicleChargingCmds,
 };
 
-// A plain HttpClient is enough here. In an ASP.NET Core app, prefer
-// services.AddCoilApi(o => { ... }) (Coil.AspNetCore) for pooled/managed HttpClient instances.
-using var http = new HttpClient();
-ITeslaAuthClient authClient = new TeslaAuthClient(http, options);
+using var authHttp = new HttpClient();
+ITeslaAuthClient authClient = new TeslaAuthClient(authHttp, authOptions);
 
-// Step 1: build the authorization URL. Persist State and Pkce (session, cache, whatever fits
-// your app) — you need both again in step 3 to complete the exchange.
-var authorizationRequest = authClient.CreateAuthorizationRequest();
+// Step 1: build the authorization URL. State and PKCE verifier must be kept until the callback.
+var request = authClient.CreateAuthorizationRequest();
 
-Console.WriteLine("Coil.NET — ConsoleQuickstart");
-Console.WriteLine("=============================");
+Console.WriteLine("Coil.NET - ConsoleQuickstart");
+Console.WriteLine("============================");
 Console.WriteLine();
-Console.WriteLine("Step 1: open this URL in a browser and log in with your Tesla account:");
-Console.WriteLine();
-Console.WriteLine($"  {authorizationRequest.AuthorizationUrl}");
-Console.WriteLine();
-Console.WriteLine("Step 2: after granting access, Tesla redirects to your redirect URI with a");
-Console.WriteLine("        \"?code=...\" query parameter (and the same \"&state=\" printed above,");
-Console.WriteLine("        which you should verify to guard against CSRF).");
+Console.WriteLine("Authorization URL (opens Tesla's login page):");
+Console.WriteLine($"  {request.AuthorizationUrl}");
 Console.WriteLine();
 
-if (clientId == "REPLACE_WITH_YOUR_CLIENT_ID")
+if (!hasCredentials)
 {
-    Console.WriteLine("No TESLA_CLIENT_ID environment variable was set, so the URL above uses a");
-    Console.WriteLine("placeholder client id and will not work against the real Tesla auth server.");
-    Console.WriteLine("Set TESLA_CLIENT_ID (and optionally TESLA_CLIENT_SECRET / TESLA_REDIRECT_URI /");
-    Console.WriteLine("TESLA_REGION) and run again to try a real login. Skipping the code exchange.");
+    Console.WriteLine("TESLA_CLIENT_ID is not set - dry run. With credentials this sample would:");
+    Console.WriteLine($"  1. listen on {redirectUri} and receive the authorization code");
+    Console.WriteLine("  2. exchange the code (PKCE) for tokens");
+    Console.WriteLine("  3. list your vehicles");
+    Console.WriteLine("  4. read charge_state, drive_state and location_data of the first vehicle");
+    Console.WriteLine(canSendCommand
+        ? $"  5. flash the lights of {vin} with a signed command"
+        : "  5. (only if COIL_PRIVATE_KEY_PEM_FILE and COIL_SAMPLE_VIN are set) flash the lights with a signed command");
     return;
 }
 
-Console.Write("Step 3: paste the \"code\" query parameter here (or press Enter to skip): ");
-var code = Console.ReadLine();
-
-if (string.IsNullOrWhiteSpace(code))
+// Step 2: wait for Tesla to redirect the browser back to our loopback listener.
+var code = await WaitForCallbackAsync(redirectUri, request.State);
+if (code is null)
 {
-    Console.WriteLine("No code entered — exiting without exchanging tokens.");
+    Console.WriteLine("Login failed or was cancelled.");
     return;
 }
 
-// Step 3 (continued): exchange the authorization code for tokens. The PKCE code verifier must
-// be the one generated for THIS authorization request.
-var tokens = await authClient.ExchangeCodeAsync(code.Trim(), authorizationRequest.Pkce.Verifier);
+// Step 3: exchange the code. The verifier must be the one created for THIS request.
+var tokens = await authClient.ExchangeCodeAsync(code, request.Pkce.Verifier);
+Console.WriteLine($"Logged in. Access token expires at {tokens.ExpiresAt:u}; refresh token present: {tokens.RefreshToken is not null}");
 
+// The token store + provider keep tokens fresh (refresh on expiry). Use a persistent ITokenStore in real apps.
+var store = new InMemoryTokenStore();
+await store.SaveAsync(tokens);
+var tokenProvider = new TeslaTokenProvider(store, authClient);
+
+var endpoints = authOptions.Endpoints ?? TeslaEndpoints.For(region);
+using var apiHttp = new HttpClient { BaseAddress = endpoints.FleetApiBaseUrl };
+ICoilClient client = new CoilClient(apiHttp, tokenProvider);
+
+// Step 4: list vehicles.
+var vehicles = await client.GetVehiclesAsync();
 Console.WriteLine();
-Console.WriteLine("Exchange succeeded:");
-Console.WriteLine($"  Token type:             {tokens.TokenType}");
-Console.WriteLine($"  Expires at (UTC):       {tokens.ExpiresAt:u}");
-Console.WriteLine($"  Access token (preview): {tokens.AccessToken[..Math.Min(12, tokens.AccessToken.Length)]}...");
-Console.WriteLine($"  Refresh token present:  {tokens.RefreshToken is not null}");
-Console.WriteLine();
-Console.WriteLine("Save the refresh token (e.g. via an ITokenStore) and use TeslaAuthClient.RefreshAsync");
-Console.WriteLine("to get a new access token once this one expires — no need to repeat steps 1-3.");
+Console.WriteLine($"Vehicles ({vehicles.Count}):");
+foreach (var v in vehicles)
+{
+    Console.WriteLine($"  {v.Vin}  {v.DisplayName ?? "(unnamed)"}  state={v.State}");
+}
+
+// Step 5: read vehicle data. Use the 17-char VIN as the vehicle tag.
+var targetVin = vin ?? vehicles.FirstOrDefault()?.Vin;
+if (targetVin is null)
+{
+    Console.WriteLine("No vehicle found.");
+    return;
+}
+
+try
+{
+    var data = await client.GetVehicleDataAsync(
+        targetVin,
+        VehicleDataEndpoint.ChargeState | VehicleDataEndpoint.DriveState | VehicleDataEndpoint.LocationData);
+    Console.WriteLine();
+    Console.WriteLine($"Data for {targetVin}:");
+    Console.WriteLine($"  Battery:  {data.ChargeState?.BatteryLevel}%  ({data.ChargeState?.ChargingState})");
+    Console.WriteLine($"  Position: {data.DriveState?.Latitude}, {data.DriveState?.Longitude}");
+}
+catch (TeslaApiException ex)
+{
+    // A sleeping car typically answers 408; call client.WakeUpAsync(vin) first if you need fresh data.
+    Console.WriteLine($"Reading vehicle data failed: {ex.StatusCode} {ex.Message}");
+}
+
+// Step 6 (optional): a signed command. Skipped unless key + VIN are configured.
+if (!canSendCommand)
+{
+    Console.WriteLine();
+    Console.WriteLine("Skipping signed command: set COIL_PRIVATE_KEY_PEM_FILE and COIL_SAMPLE_VIN to flash the lights.");
+    return;
+}
+
+using var keyPair = TeslaKeyPair.FromPrivateKeyPem(await File.ReadAllTextAsync(keyFile!));
+var commands = new CoilCommands(apiHttp, tokenProvider, keyPair, client, new CoilCommandsOptions { AutoWake = true });
+try
+{
+    CommandResult result = await commands.FlashLightsAsync(vin!);
+    Console.WriteLine();
+    Console.WriteLine($"FlashLights -> success={result.Success}, reason={result.Reason ?? "-"}");
+}
+catch (TeslaKeyNotPairedException ex)
+{
+    Console.WriteLine($"Key not paired: {ex.Message}");
+}
+catch (TeslaVehicleAsleepException ex)
+{
+    Console.WriteLine($"Vehicle asleep/offline: {ex.Message}");
+}
+
+// Minimal loopback listener: waits for one request on the redirect URI, validates state, returns the code.
+static async Task<string?> WaitForCallbackAsync(Uri redirect, string expectedState)
+{
+    using var listener = new HttpListener();
+    listener.Prefixes.Add($"{redirect.Scheme}://{redirect.Authority}/");
+    listener.Start();
+    Console.WriteLine($"Open the URL above in your browser; waiting for the redirect on {redirect} ...");
+
+    while (true)
+    {
+        var ctx = await listener.GetContextAsync();
+        if (ctx.Request.Url?.AbsolutePath != redirect.AbsolutePath)
+        {
+            ctx.Response.StatusCode = 404;
+            ctx.Response.Close();
+            continue;
+        }
+
+        var query = System.Web.HttpUtility.ParseQueryString(ctx.Request.Url.Query);
+        var ok = query["code"] is not null && query["state"] == expectedState;
+        var body = Encoding.UTF8.GetBytes(ok
+            ? "Login complete. You can close this tab."
+            : $"Login failed: {query["error"] ?? "invalid state"} {query["error_description"]}");
+        ctx.Response.ContentType = "text/plain; charset=utf-8";
+        await ctx.Response.OutputStream.WriteAsync(body);
+        ctx.Response.Close();
+        return ok ? query["code"] : null;
+    }
+}
