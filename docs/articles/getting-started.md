@@ -2,7 +2,7 @@
 
 From an empty console project to a printed Tesla authorization URL and an exchanged access token. No Tesla account is required to print the URL — you only need one to actually log in.
 
-> **Preview.** Coil.NET `0.1.0-preview` was verified live against the EU region with one vehicle. Behaviour in other regions or on other vehicle models is untested.
+> **Preview.** CoilPro `0.1.0-preview` was verified live against the EU region with one vehicle. Behaviour in other regions or on other vehicle models is untested.
 
 ## Prerequisites
 
@@ -16,13 +16,13 @@ From an empty console project to a printed Tesla authorization URL and an exchan
 ```bash
 dotnet new console -n MyTeslaApp
 cd MyTeslaApp
-dotnet add package Coil
+dotnet add package CoilPro
 ```
 
 ## 2. Build the authorization URL
 
 ```csharp
-using Coil;
+using CoilPro;
 
 var options = new TeslaAuthOptions
 {
@@ -52,11 +52,11 @@ var tokens = await authClient.ExchangeCodeAsync(code, request.Pkce.Verifier);
 Console.WriteLine($"Access token expires at {tokens.ExpiresAt:u}");
 ```
 
-Tesla's token endpoint requires the client secret (and an `audience`, which Coil sets for you) for the code exchange, so set `TeslaAuthOptions.ClientSecret` for a confidential client. `tokens.RefreshToken` is populated when `TeslaScopes.OfflineAccess` was requested (as above). Store it with an `ITokenStore` implementation — `InMemoryTokenStore` is a good default for quick experiments — and call `authClient.RefreshAsync(refreshToken)` once the access token expires, instead of repeating steps 2-3.
+Tesla's token endpoint requires the client secret (and an `audience`, which CoilPro sets for you) for the code exchange, so set `TeslaAuthOptions.ClientSecret` for a confidential client. `tokens.RefreshToken` is populated when `TeslaScopes.OfflineAccess` was requested (as above). Store it with an `ITokenStore` implementation — `InMemoryTokenStore` is a good default for quick experiments — and call `authClient.RefreshAsync(refreshToken)` once the access token expires, instead of repeating steps 2-3.
 
 ## 4. Try it end to end
 
-The repository ships a runnable version of the steps above at [`samples/ConsoleQuickstart`](https://github.com/machine1986/Coil.NET/tree/main/samples/ConsoleQuickstart):
+The repository ships a runnable version of the steps above at [`samples/ConsoleQuickstart`](https://github.com/machine1986/CoilPro/tree/main/samples/ConsoleQuickstart):
 
 ```bash
 dotnet run --project samples/ConsoleQuickstart
@@ -66,10 +66,10 @@ See the sample's own README/source for the environment variables it reads.
 
 ## Using dependency injection (ASP.NET Core)
 
-In an ASP.NET Core app, register Coil.NET with the `Coil.AspNetCore` DI extension instead of constructing `HttpClient`/`TeslaAuthClient` by hand:
+In an ASP.NET Core app, register CoilPro with the `CoilPro.AspNetCore` DI extension instead of constructing `HttpClient`/`TeslaAuthClient` by hand:
 
 ```csharp
-builder.Services.AddCoilApi(o =>
+builder.Services.AddCoilProApi(o =>
 {
     o.ClientId = builder.Configuration["Tesla:ClientId"]!;
     o.ClientSecret = builder.Configuration["Tesla:ClientSecret"];
@@ -86,4 +86,4 @@ This wires up `ITeslaAuthClient` through `IHttpClientFactory` so you get pooled 
 - Shipping to real users? Walk through [Partner Onboarding](partner-onboarding.md) — keypair generation, `/.well-known` hosting, and Tesla partner registration.
 - Read vehicle data: [Reading Vehicle Data](reading-vehicle-data.md).
 - Send signed commands: [Signed Vehicle Commands](commands.md).
-- The `coil` CLI (`dotnet tool install --global Coil.Cli`) automates onboarding (`coil keys`, `coil partner`), login and smoke tests (`coil login`, `coil vehicles`, `coil data`, `coil wake`, `coil cmd`) — see [Partner Onboarding](partner-onboarding.md).
+- The `coilpro` CLI (`dotnet tool install --global CoilPro.Cli`) automates onboarding (`coilpro keys`, `coilpro partner`), login and smoke tests (`coilpro login`, `coilpro vehicles`, `coilpro data`, `coilpro wake`, `coilpro cmd`) — see [Partner Onboarding](partner-onboarding.md).

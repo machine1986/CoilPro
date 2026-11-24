@@ -1,11 +1,11 @@
 # Security Policy
 
-Coil.NET handles OAuth tokens and signs commands that can control a vehicle, so security reports are taken seriously.
+CoilPro handles OAuth tokens and signs commands that can control a vehicle, so security reports are taken seriously.
 
 ## Reporting a vulnerability
 
 Please report vulnerabilities **privately** through GitHub security advisories:
-**Security tab → "Report a vulnerability"** in [github.com/machine1986/Coil.NET](https://github.com/machine1986/Coil.NET).
+**Security tab → "Report a vulnerability"** in [github.com/machine1986/CoilPro](https://github.com/machine1986/CoilPro).
 Do not open a public issue for a security problem.
 
 Include the affected version, a description of the impact, and steps to reproduce.
@@ -16,10 +16,10 @@ re-register the domain, re-pair the virtual key) before reporting.
 
 ## Supported versions
 
-Coil.NET is in preview; only the latest published preview receives fixes.
+CoilPro is in preview; only the latest published preview receives fixes.
 
 ## Scope
 
-In scope: this repository's code and packages (`Coil`, `Coil.Commands`, `Coil.AspNetCore`, `Coil.Cli`).
-Issues in Tesla's services or vehicles should be reported to Tesla; Coil.NET is unofficial and not affiliated
+In scope: this repository's code and packages (`CoilPro`, `CoilPro.Commands`, `CoilPro.AspNetCore`, `CoilPro.Cli`).
+Issues in Tesla's services or vehicles should be reported to Tesla; CoilPro is unofficial and not affiliated
 with Tesla, Inc.

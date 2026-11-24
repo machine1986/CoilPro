@@ -1,22 +1,22 @@
 # Reading Vehicle Data
 
-`ICoilClient` is the read-access surface for the Tesla Fleet API's vehicle endpoints: list the vehicles on an account, fetch `vehicle_data`, wake a sleeping car, and pull charging history. This article builds on [Getting Started](getting-started.md) — you need a working `ITeslaAuthClient` (or stored tokens) before any of this works. Verified live against the EU region with one vehicle.
+`ICoilProClient` is the read-access surface for the Tesla Fleet API's vehicle endpoints: list the vehicles on an account, fetch `vehicle_data`, wake a sleeping car, and pull charging history. This article builds on [Getting Started](getting-started.md) — you need a working `ITeslaAuthClient` (or stored tokens) before any of this works. Verified live against the EU region with one vehicle.
 
 > **The Fleet API is pay-per-use.** Every `vehicle_data` call costs money, and cost scales with which data segments you request and whether the vehicle had to be woken up first. The single most important habit in this article is: **request only the segments you need, and never wake a sleeping car just to read data.**
 
 ## Prerequisites
 
 - A working OAuth setup from [Getting Started](getting-started.md) (`ITeslaAuthClient`, a `TeslaScopes.VehicleDeviceData` grant).
-- Stored tokens behind an `ITokenStore` — `ICoilClient` doesn't do OAuth itself, it only reads a bearer token from an `ITeslaTokenProvider`.
+- Stored tokens behind an `ITokenStore` — `ICoilProClient` doesn't do OAuth itself, it only reads a bearer token from an `ITeslaTokenProvider`.
 
-## Building a `CoilClient`
+## Building a `CoilProClient`
 
 ### Via dependency injection (recommended)
 
-`Coil.AspNetCore`'s `AddCoilApi` registers `ICoilClient` and `ITeslaTokenProvider` alongside `ITeslaAuthClient`, so you can inject `ICoilClient` directly wherever you need it:
+`CoilPro.AspNetCore`'s `AddCoilProApi` registers `ICoilProClient` and `ITeslaTokenProvider` alongside `ITeslaAuthClient`, so you can inject `ICoilProClient` directly wherever you need it:
 
 ```csharp
-builder.Services.AddCoilApi(o =>
+builder.Services.AddCoilProApi(o =>
 {
     o.ClientId = builder.Configuration["Tesla:ClientId"]!;
     o.ClientSecret = builder.Configuration["Tesla:ClientSecret"];
@@ -27,19 +27,19 @@ builder.Services.AddCoilApi(o =>
 ```
 
 ```csharp
-public sealed class FleetStatusService(ICoilClient coil)
+public sealed class FleetStatusService(ICoilProClient coil)
 {
     public Task<IReadOnlyList<Vehicle>> ListVehiclesAsync(CancellationToken ct) =>
         coil.GetVehiclesAsync(ct);
 }
 ```
 
-Register your own `ITokenStore` (the default is `InMemoryTokenStore`, fine for a single process, not for anything that restarts) before or after calling `AddCoilApi` — it's added with `TryAdd`, so your registration wins either way.
+Register your own `ITokenStore` (the default is `InMemoryTokenStore`, fine for a single process, not for anything that restarts) before or after calling `AddCoilProApi` — it's added with `TryAdd`, so your registration wins either way.
 
 ### Standalone (no DI container)
 
 ```csharp
-using Coil;
+using CoilPro;
 
 ITokenStore tokenStore = new InMemoryTokenStore();
 // ... populate tokenStore from a completed login (see Getting Started) ...
@@ -49,10 +49,10 @@ ITeslaAuthClient authClient = new TeslaAuthClient(authHttp, authOptions);
 ITeslaTokenProvider tokenProvider = new TeslaTokenProvider(tokenStore, authClient);
 
 using var apiHttp = new HttpClient { BaseAddress = TeslaEndpoints.For(TeslaRegion.Europe).FleetApiBaseUrl };
-ICoilClient coil = new CoilClient(apiHttp, tokenProvider, new CoilClientOptions());
+ICoilProClient coil = new CoilProClient(apiHttp, tokenProvider, new CoilProClientOptions());
 ```
 
-The `HttpClient` passed to `CoilClient` needs its `BaseAddress` set to the Fleet API host for your region (`TeslaEndpoints.For(region).FleetApiBaseUrl`) — `AddCoilApi` does this for you via `IHttpClientFactory`; standalone code has to do it explicitly. `CoilClientOptions` is optional and tunes the retry/backoff pipeline (`MaxRetries`, `BaseRetryDelay`, `UseJitter`, `RespectRetryAfter`); pass `null` to accept the defaults.
+The `HttpClient` passed to `CoilProClient` needs its `BaseAddress` set to the Fleet API host for your region (`TeslaEndpoints.For(region).FleetApiBaseUrl`) — `AddCoilProApi` does this for you via `IHttpClientFactory`; standalone code has to do it explicitly. `CoilProClientOptions` is optional and tunes the retry/backoff pipeline (`MaxRetries`, `BaseRetryDelay`, `UseJitter`, `RespectRetryAfter`); pass `null` to accept the defaults.
 
 ## Listing vehicles
 
@@ -79,7 +79,7 @@ var data = await coil.GetVehicleDataAsync(
     VehicleDataEndpoint.ChargeState | VehicleDataEndpoint.DriveState | VehicleDataEndpoint.ClimateState);
 ```
 
-`VehicleDataEndpoint` is a `[Flags]` enum: `ChargeState`, `ClimateState`, `DriveState`, `GuiSettings`, `VehicleState`, `VehicleConfig`, `LocationData`, `ClosuresState`. Combine with `|`. `.ToQueryValue()` turns the combination into the semicolon-separated string the `endpoints` query parameter expects (e.g. `"charge_state;drive_state;climate_state"`) — you won't normally call it yourself, `CoilClient` does it internally, but it's public if you need to inspect or log the resulting query value.
+`VehicleDataEndpoint` is a `[Flags]` enum: `ChargeState`, `ClimateState`, `DriveState`, `GuiSettings`, `VehicleState`, `VehicleConfig`, `LocationData`, `ClosuresState`. Combine with `|`. `.ToQueryValue()` turns the combination into the semicolon-separated string the `endpoints` query parameter expects (e.g. `"charge_state;drive_state;climate_state"`) — you won't normally call it yourself, `CoilProClient` does it internally, but it's public if you need to inspect or log the resulting query value.
 
 Location fields (`latitude`/`longitude` in `drive_state`) are only returned when `VehicleDataEndpoint.LocationData` is requested as well and the token has the `vehicle_location` scope.
 
@@ -108,7 +108,7 @@ if (data.VehicleState is { } vs)
 }
 ```
 
-Fields Coil.NET doesn't model explicitly are never dropped: every state record (and `VehicleData` itself) carries a `[JsonExtensionData] AdditionalData` dictionary, so deserialization tolerates new or renamed fields Tesla adds without a SDK update.
+Fields CoilPro doesn't model explicitly are never dropped: every state record (and `VehicleData` itself) carries a `[JsonExtensionData] AdditionalData` dictionary, so deserialization tolerates new or renamed fields Tesla adds without a SDK update.
 
 ### Don't wake sleeping cars just to read data
 
@@ -148,11 +148,11 @@ catch (TeslaApiException ex)
 }
 ```
 
-`CoilClientOptions` already retries transient failures (408/429/5xx) with backoff before this exception surfaces — `TeslaApiException` means the request ultimately failed after those retries were exhausted (or the error wasn't retryable, e.g. 401/404).
+`CoilProClientOptions` already retries transient failures (408/429/5xx) with backoff before this exception surfaces — `TeslaApiException` means the request ultimately failed after those retries were exhausted (or the error wasn't retryable, e.g. 401/404).
 
 ## Watching your rate-limit budget
 
-`ICoilClient.LastRateLimit` holds the `RateLimitInfo` parsed from the most recent response's headers — `null` if no relevant headers were present. Tesla reports one limit/remaining/reset triple per bucket (e.g. `ratelimit-device-data-per-vehicle-*`); `RateLimitInfo` exposes the bucket as `Category` and picks the one with the fewest remaining requests. Surface it to anyone who needs to know how much budget is left before the window resets:
+`ICoilProClient.LastRateLimit` holds the `RateLimitInfo` parsed from the most recent response's headers — `null` if no relevant headers were present. Tesla reports one limit/remaining/reset triple per bucket (e.g. `ratelimit-device-data-per-vehicle-*`); `RateLimitInfo` exposes the bucket as `Category` and picks the one with the fewest remaining requests. Surface it to anyone who needs to know how much budget is left before the window resets:
 
 ```csharp
 _ = await coil.GetVehiclesAsync();
@@ -165,17 +165,17 @@ if (coil.LastRateLimit is { } rateLimit)
 
 `RateLimitInfo` is also attached to `TeslaApiException.RateLimit` on a failing (e.g. 429) response, so you can inspect it even when the call itself threw.
 
-## The `coil` CLI
+## The `coilpro` CLI
 
-For quick smoke tests without writing any code, `tools/Coil.Cli` (installed with `dotnet tool install --global Coil.Cli`) ships two read commands built on `ICoilClient`, alongside `coil login`:
+For quick smoke tests without writing any code, `tools/CoilPro.Cli` (installed with `dotnet tool install --global CoilPro.Cli`) ships two read commands built on `ICoilProClient`, alongside `coilpro login`:
 
 ```bash
-coil login              # OAuth flow via a local loopback redirect; tokens are persisted to ~/.coil/
-coil vehicles           # list vehicles on the account (Vehicle.Id, Vin, DisplayName, State)
-coil data <vin> --endpoints charge_state,drive_state   # vehicle_data, filtered to the given segments
+coilpro login              # OAuth flow via a local loopback redirect; tokens are persisted to ~/.coilpro/
+coilpro vehicles           # list vehicles on the account (Vehicle.Id, Vin, DisplayName, State)
+coilpro data <vin> --endpoints charge_state,drive_state   # vehicle_data, filtered to the given segments
 ```
 
-`coil data` without `--endpoints` requests `charge_state`, `drive_state`, `climate_state` and `vehicle_state` — pass `--endpoints` with a comma-separated list of segment names (matching the `VehicleDataEndpoint` members: `charge_state`, `climate_state`, `drive_state`, `gui_settings`, `vehicle_state`, `vehicle_config`, `location_data`, `closures_state`) to keep calls cheap and fast, exactly as you would with the SDK's flags enum. Check `coil --help` / `coil data --help` for the exact flags shipped in your installed version.
+`coilpro data` without `--endpoints` requests `charge_state`, `drive_state`, `climate_state` and `vehicle_state` — pass `--endpoints` with a comma-separated list of segment names (matching the `VehicleDataEndpoint` members: `charge_state`, `climate_state`, `drive_state`, `gui_settings`, `vehicle_state`, `vehicle_config`, `location_data`, `closures_state`) to keep calls cheap and fast, exactly as you would with the SDK's flags enum. Check `coilpro --help` / `coilpro data --help` for the exact flags shipped in your installed version.
 
 ## Next steps
 

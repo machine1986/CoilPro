@@ -1,4 +1,4 @@
-// ConsoleQuickstart - end-to-end Coil.NET walkthrough:
+// ConsoleQuickstart - end-to-end CoilPro walkthrough:
 //   1. login (authorization code + PKCE, loopback listener on http://localhost:8080/callback)
 //   2. list vehicles
 //   3. read charge_state / drive_state / location_data
@@ -12,9 +12,9 @@
 //   TESLA_REDIRECT_URI          Must be a localhost URI registered on your app
 //                               (default: http://localhost:8080/callback)
 //   TESLA_REGION                "NorthAmerica" or "Europe" (default: Europe)
-//   COIL_PRIVATE_KEY_PEM_FILE   Path to the P-256 private key PEM (see `coil keys generate`).
+//   COILPRO_PRIVATE_KEY_PEM_FILE   Path to the P-256 private key PEM (see `coilpro keys generate`).
 //                               Needed for signed commands.
-//   COIL_SAMPLE_VIN             17-character VIN of the vehicle to flash. Needed for commands.
+//   COILPRO_SAMPLE_VIN             17-character VIN of the vehicle to flash. Needed for commands.
 //
 // Signed commands additionally require: the matching public key registered via partner
 // registration, and the virtual key paired in the car via https://tesla.com/_ak/<your-domain>.
@@ -22,16 +22,16 @@
 // Run with:  dotnet run --project samples/ConsoleQuickstart
 using System.Net;
 using System.Text;
-using Coil;
-using Coil.Commands;
+using CoilPro;
+using CoilPro.Commands;
 
 var clientId = Environment.GetEnvironmentVariable("TESLA_CLIENT_ID") ?? "REPLACE_WITH_YOUR_CLIENT_ID";
 var redirectUri = new Uri(Environment.GetEnvironmentVariable("TESLA_REDIRECT_URI") ?? "http://localhost:8080/callback");
 var region = Enum.TryParse<TeslaRegion>(Environment.GetEnvironmentVariable("TESLA_REGION"), true, out var r)
     ? r
     : TeslaRegion.Europe;
-var keyFile = Environment.GetEnvironmentVariable("COIL_PRIVATE_KEY_PEM_FILE");
-var vin = Environment.GetEnvironmentVariable("COIL_SAMPLE_VIN");
+var keyFile = Environment.GetEnvironmentVariable("COILPRO_PRIVATE_KEY_PEM_FILE");
+var vin = Environment.GetEnvironmentVariable("COILPRO_SAMPLE_VIN");
 var canSendCommand = !string.IsNullOrWhiteSpace(keyFile) && !string.IsNullOrWhiteSpace(vin);
 var hasCredentials = clientId != "REPLACE_WITH_YOUR_CLIENT_ID";
 
@@ -52,7 +52,7 @@ ITeslaAuthClient authClient = new TeslaAuthClient(authHttp, authOptions);
 // Step 1: build the authorization URL. State and PKCE verifier must be kept until the callback.
 var request = authClient.CreateAuthorizationRequest();
 
-Console.WriteLine("Coil.NET - ConsoleQuickstart");
+Console.WriteLine("CoilPro - ConsoleQuickstart");
 Console.WriteLine("============================");
 Console.WriteLine();
 Console.WriteLine("Authorization URL (opens Tesla's login page):");
@@ -68,7 +68,7 @@ if (!hasCredentials)
     Console.WriteLine("  4. read charge_state, drive_state and location_data of the first vehicle");
     Console.WriteLine(canSendCommand
         ? $"  5. flash the lights of {vin} with a signed command"
-        : "  5. (only if COIL_PRIVATE_KEY_PEM_FILE and COIL_SAMPLE_VIN are set) flash the lights with a signed command");
+        : "  5. (only if COILPRO_PRIVATE_KEY_PEM_FILE and COILPRO_SAMPLE_VIN are set) flash the lights with a signed command");
     return;
 }
 
@@ -91,7 +91,7 @@ var tokenProvider = new TeslaTokenProvider(store, authClient);
 
 var endpoints = authOptions.Endpoints ?? TeslaEndpoints.For(region);
 using var apiHttp = new HttpClient { BaseAddress = endpoints.FleetApiBaseUrl };
-ICoilClient client = new CoilClient(apiHttp, tokenProvider);
+ICoilProClient client = new CoilProClient(apiHttp, tokenProvider);
 
 // Step 4: list vehicles.
 var vehicles = await client.GetVehiclesAsync();
@@ -130,12 +130,12 @@ catch (TeslaApiException ex)
 if (!canSendCommand)
 {
     Console.WriteLine();
-    Console.WriteLine("Skipping signed command: set COIL_PRIVATE_KEY_PEM_FILE and COIL_SAMPLE_VIN to flash the lights.");
+    Console.WriteLine("Skipping signed command: set COILPRO_PRIVATE_KEY_PEM_FILE and COILPRO_SAMPLE_VIN to flash the lights.");
     return;
 }
 
 using var keyPair = TeslaKeyPair.FromPrivateKeyPem(await File.ReadAllTextAsync(keyFile!));
-var commands = new CoilCommands(apiHttp, tokenProvider, keyPair, client, new CoilCommandsOptions { AutoWake = true });
+var commands = new CoilProCommands(apiHttp, tokenProvider, keyPair, client, new CoilProCommandsOptions { AutoWake = true });
 try
 {
     CommandResult result = await commands.FlashLightsAsync(vin!);

@@ -1,4 +1,4 @@
-# Dependabot configuration for Coil.NET
+# Dependabot configuration for CoilPro
 #
 # Keeps NuGet package references and GitHub Actions workflow versions current
 # with weekly pull requests.
@@ -14,7 +14,7 @@ updates:
       - "dependencies"
       - "nuget"
     ignore:
-      # Coil.AspNetCore multi-targetet net8.0;net10.0. Diese drei Pakete bilden
+      # CoilPro.AspNetCore multi-targetet net8.0;net10.0. Diese drei Pakete bilden
       # eine Familie und müssen auf der 8.0.x-Linie bleiben, solange net8.0 ein
       # Zielframework ist — sonst ziehen net8.0-Konsumenten .NET-10-Assemblies
       # (genau das ist über PR #15 passiert). Patch-/Minor-Updates innerhalb 8.0.x

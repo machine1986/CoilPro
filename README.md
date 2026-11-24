@@ -1,12 +1,14 @@
-# Coil.NET
+# CoilPro
 
-[![CI](https://github.com/machine1986/Coil.NET/actions/workflows/ci.yml/badge.svg)](https://github.com/machine1986/Coil.NET/actions/workflows/ci.yml)
-[![NuGet](https://img.shields.io/nuget/vpre/Coil.svg)](https://www.nuget.org/packages/Coil/)
+[![CI](https://github.com/machine1986/CoilPro/actions/workflows/ci.yml/badge.svg)](https://github.com/machine1986/CoilPro/actions/workflows/ci.yml)
+[![NuGet](https://img.shields.io/nuget/vpre/CoilPro.svg)](https://www.nuget.org/packages/CoilPro/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-**Coil.NET** is an unofficial, open-source .NET SDK for the [Tesla Fleet API](https://developer.tesla.com/docs/fleet-api).
+**CoilPro** is an unofficial, open-source .NET SDK for the [Tesla Fleet API](https://developer.tesla.com/docs/fleet-api).
 Its main differentiator is a **native implementation of the Vehicle Command Protocol in pure C#**: signed
 vehicle commands without running Tesla's Go-based `tesla-http-proxy`.
+
+> **Free and open source (MIT).** The "Pro" in the name is the naming scheme of its author's products — there is no paid edition.
 
 > **Unofficial — not affiliated with, endorsed by, or sponsored by Tesla, Inc.**
 > "Tesla" is a trademark of Tesla, Inc. and is used here only to describe API compatibility.
@@ -17,12 +19,12 @@ vehicle commands without running Tesla's Go-based `tesla-http-proxy`.
 
 ## Features
 
-- **Signed commands** (`Coil.Commands`): lock/unlock, honk, flash, climate, charging control, charge limit, charge port, charging amps — ECDH session handshake, ECDSA P-256, HMAC and AES-GCM, Protobuf envelope, using `System.Security.Cryptography` only.
+- **Signed commands** (`CoilPro.Commands`): lock/unlock, honk, flash, climate, charging control, charge limit, charge port, charging amps — ECDH session handshake, ECDSA P-256, HMAC and AES-GCM, Protobuf envelope, using `System.Security.Cryptography` only.
 - **OAuth**: authorization code + PKCE, client credentials, refresh; token store and token provider abstractions.
-- **Partner onboarding**: P-256 key generation, domain registration, registered-key verification (`coil` CLI and `ITeslaPartnerClient`).
+- **Partner onboarding**: P-256 key generation, domain registration, registered-key verification (`coilpro` CLI and `ITeslaPartnerClient`).
 - **Read endpoints**: vehicle list, `vehicle_data` with per-segment filters (the Fleet API is pay-per-use), wake-up, charging history, rate-limit tracking, tolerant model deserialization.
-- **ASP.NET Core / DI** integration (`AddCoilApi`, `AddCoilCommands`) with `IHttpClientFactory` and Polly retries.
-- **`coil` CLI** (`dotnet tool`) for onboarding and smoke tests.
+- **ASP.NET Core / DI** integration (`AddCoilProProApi`, `AddCoilProProCommands`) with `IHttpClientFactory` and Polly retries.
+- **`coilpro` CLI** (`dotnet tool`) for onboarding and smoke tests.
 
 Libraries target `net8.0` and `net10.0` (CLI: `net10.0`). MIT licensed.
 
@@ -30,10 +32,10 @@ Libraries target `net8.0` and `net10.0` (CLI: `net10.0`). MIT licensed.
 
 | Package | Contents |
 |---|---|
-| [`Coil`](https://www.nuget.org/packages/Coil/) | Core: OAuth, HTTP layer, partner onboarding, vehicle read endpoints, models |
-| [`Coil.Commands`](https://www.nuget.org/packages/Coil.Commands/) | Vehicle Command Protocol — signed commands |
-| [`Coil.AspNetCore`](https://www.nuget.org/packages/Coil.AspNetCore/) | DI extensions, OAuth callback helper |
-| [`Coil.Cli`](https://www.nuget.org/packages/Coil.Cli/) | `dotnet tool` providing the `coil` command |
+| [`CoilPro`](https://www.nuget.org/packages/CoilPro/) | Core: OAuth, HTTP layer, partner onboarding, vehicle read endpoints, models |
+| [`CoilPro.Commands`](https://www.nuget.org/packages/CoilPro.Commands/) | Vehicle Command Protocol — signed commands |
+| [`CoilPro.AspNetCore`](https://www.nuget.org/packages/CoilPro.AspNetCore/) | DI extensions, OAuth callback helper |
+| [`CoilPro.Cli`](https://www.nuget.org/packages/CoilPro.Cli/) | `dotnet tool` providing the `coilpro` command |
 
 ## Quickstart
 
@@ -51,25 +53,25 @@ you may meet.
 ### Onboard with the CLI
 
 ```bash
-dotnet tool install --global Coil.Cli
+dotnet tool install --global CoilPro.Cli
 
-coil keys generate                       # P-256 key pair in ~/.coil/keys/
-# publish ~/.coil/keys/public-key.pem at the well-known URL above, then:
-coil partner register   --domain <domain> --client-id <id> --client-secret <secret> --region eu
-coil partner public-key --domain <domain> --client-id <id> --client-secret <secret> --region eu
-coil login --client-id <id> --client-secret <secret> --region eu --port 8080
-coil vehicles
-coil cmd <VIN> flash --wake              # signed command (needs the virtual key)
+coilpro keys generate                       # P-256 key pair in ~/.coilpro/keys/
+# publish ~/.coilpro/keys/public-key.pem at the well-known URL above, then:
+coilpro partner register   --domain <domain> --client-id <id> --client-secret <secret> --region eu
+coilpro partner public-key --domain <domain> --client-id <id> --client-secret <secret> --region eu
+coilpro login --client-id <id> --client-secret <secret> --region eu --port 8080
+coilpro vehicles
+coilpro cmd <VIN> flash --wake              # signed command (needs the virtual key)
 ```
 
 ### Read data from code
 
 ```bash
-dotnet add package Coil
+dotnet add package CoilPro
 ```
 
 ```csharp
-using Coil;
+using CoilPro;
 
 var auth = new TeslaAuthOptions
 {
@@ -95,7 +97,7 @@ ITeslaTokenProvider tokenProvider = new TeslaTokenProvider(store, authClient);
 
 // 3. Read vehicle data — request only the segments you need.
 using var apiHttp = new HttpClient { BaseAddress = TeslaEndpoints.For(TeslaRegion.Europe).FleetApiBaseUrl };
-ICoilClient coil = new CoilClient(apiHttp, tokenProvider, new CoilClientOptions());
+ICoilProClient coil = new CoilProClient(apiHttp, tokenProvider, new CoilProClientOptions());
 
 var vehicles = await coil.GetVehiclesAsync();
 var data = await coil.GetVehicleDataAsync(
@@ -106,11 +108,11 @@ Console.WriteLine($"Battery: {data.ChargeState?.BatteryLevel}%");
 ### Send a signed command
 
 ```csharp
-using Coil.Commands;
+using CoilPro.Commands;
 
 // Request TeslaScopes.VehicleCmds | TeslaScopes.VehicleChargingCmds at login.
 using var keyPair = TeslaKeyPair.FromPrivateKeyPem(File.ReadAllText("private-key.pem"));
-ICoilCommands commands = new CoilCommands(apiHttp, tokenProvider, keyPair);
+ICoilProCommands commands = new CoilProCommands(apiHttp, tokenProvider, keyPair);
 
 CommandResult result = await commands.SetChargeLimitAsync("<17-character VIN>", 80);
 Console.WriteLine(result.Success ? "OK" : $"Refused: {result.Reason}");
@@ -118,8 +120,8 @@ Console.WriteLine(result.Success ? "OK" : $"Refused: {result.Reason}");
 
 A vehicle refusal is returned as `CommandResult { Success = false, Reason }`; delivery or authentication
 failures throw `TeslaCommandException` (including `TeslaKeyNotPairedException` and
-`TeslaVehicleAsleepException`). Waking a sleeping car is opt-in (`CoilCommandsOptions.AutoWake`) because it
-is a billed call. In ASP.NET Core use `services.AddCoilApi(...)` and `services.AddCoilCommands(...)`.
+`TeslaVehicleAsleepException`). Waking a sleeping car is opt-in (`CoilProCommandsOptions.AutoWake`) because it
+is a billed call. In ASP.NET Core use `services.AddCoilProProApi(...)` and `services.AddCoilProProCommands(...)`.
 
 ## Documentation
 

@@ -1,6 +1,6 @@
 # Signed Vehicle Commands
 
-`ICoilCommands` (package `Coil.Commands`) sends commands such as lock, flash lights or set charge limit to the vehicle using Tesla's **Vehicle Command Protocol**, implemented natively in C#. Commands are signed with your P-256 key and sent through the Fleet API's `signed_command` endpoint — no `tesla-http-proxy` sidecar required.
+`ICoilProCommands` (package `CoilPro.Commands`) sends commands such as lock, flash lights or set charge limit to the vehicle using Tesla's **Vehicle Command Protocol**, implemented natively in C#. Commands are signed with your P-256 key and sent through the Fleet API's `signed_command` endpoint — no `tesla-http-proxy` sidecar required.
 
 > **Unofficial — not affiliated with Tesla, Inc.**
 
@@ -19,13 +19,13 @@ Commands only work when all of these are in place:
 ## Quickstart (standalone)
 
 ```csharp
-using Coil;
-using Coil.Commands;
+using CoilPro;
+using CoilPro.Commands;
 
 using var keyPair = TeslaKeyPair.FromPrivateKeyPem(File.ReadAllText("private-key.pem"));
 
 using var apiHttp = new HttpClient { BaseAddress = TeslaEndpoints.For(TeslaRegion.Europe).FleetApiBaseUrl };
-ICoilCommands commands = new CoilCommands(apiHttp, tokenProvider, keyPair);
+ICoilProCommands commands = new CoilProCommands(apiHttp, tokenProvider, keyPair);
 
 CommandResult result = await commands.FlashLightsAsync("5YJ3E1EA7KF000000"); // 17-character VIN
 Console.WriteLine(result.Success ? "OK" : $"Refused: {result.Reason}");
@@ -35,24 +35,24 @@ Every method takes the **17-character VIN**, not the numeric Fleet API id. Avail
 
 ## Dependency injection
 
-`AddCoilCommands` in `Coil.AspNetCore` registers `ICoilCommands`. Call `AddCoilApi` first — the commands reuse its Fleet API `HttpClient`, `ITeslaTokenProvider` and `ICoilClient`.
+`AddCoilProCommands` in `CoilPro.AspNetCore` registers `ICoilProCommands`. Call `AddCoilProApi` first — the commands reuse its Fleet API `HttpClient`, `ITeslaTokenProvider` and `ICoilProClient`.
 
 ```csharp
-builder.Services.AddCoilApi(o => { /* ClientId, Region, Scopes incl. VehicleCmds ... */ });
+builder.Services.AddCoilProApi(o => { /* ClientId, Region, Scopes incl. VehicleCmds ... */ });
 
 // Option A: register the key yourself ...
 builder.Services.AddSingleton(TeslaKeyPair.FromPrivateKeyPem(builder.Configuration["Tesla:PrivateKeyPem"]!));
-builder.Services.AddCoilCommands(o => o.AutoWake = false);
+builder.Services.AddCoilProCommands(o => o.AutoWake = false);
 
 // Option B: ... or pass the PEM directly
-builder.Services.AddCoilCommands(builder.Configuration["Tesla:PrivateKeyPem"]!, o => o.CommandTimeout = TimeSpan.FromSeconds(45));
+builder.Services.AddCoilProCommands(builder.Configuration["Tesla:PrivateKeyPem"]!, o => o.CommandTimeout = TimeSpan.FromSeconds(45));
 
 // Option C: ... or a factory (e.g. secret store)
-builder.Services.AddCoilCommands(sp => LoadKeyFromVault(sp));
+builder.Services.AddCoilProCommands(sp => LoadKeyFromVault(sp));
 ```
 
 ```csharp
-public sealed class GarageService(ICoilCommands commands)
+public sealed class GarageService(ICoilProCommands commands)
 {
     public Task<CommandResult> SetLimitAsync(string vin, int percent, CancellationToken ct) =>
         commands.SetChargeLimitAsync(vin, percent, ct);
@@ -81,7 +81,7 @@ Commands to the same VIN are serialized. Retryable protocol faults (busy, timeou
 
 ## AutoWake is opt-in
 
-By default a command to a sleeping vehicle throws `TeslaVehicleAsleepException` immediately. With `CoilCommandsOptions.AutoWake = true`, Coil first calls `wake_up` and polls until the vehicle is online (bounded by `WakeTimeout`, default 60 s). It is opt-in because the Fleet API is pay-per-use and a wake-up is a billed call; it also wakes the car's computer, which costs a little battery. Nothing should spend money or energy without your decision. AutoWake needs an `ICoilClient` (injected automatically with `AddCoilCommands`; passed as constructor argument otherwise).
+By default a command to a sleeping vehicle throws `TeslaVehicleAsleepException` immediately. With `CoilProCommandsOptions.AutoWake = true`, CoilPro first calls `wake_up` and polls until the vehicle is online (bounded by `WakeTimeout`, default 60 s). It is opt-in because the Fleet API is pay-per-use and a wake-up is a billed call; it also wakes the car's computer, which costs a little battery. Nothing should spend money or energy without your decision. AutoWake needs an `ICoilProClient` (injected automatically with `AddCoilProCommands`; passed as constructor argument otherwise).
 
 | Option | Default | Meaning |
 |---|---|---|
@@ -97,30 +97,30 @@ By default a command to a sleeping vehicle throws `TeslaVehicleAsleepException` 
 | Situation | What you see | What to do |
 |---|---|---|
 | Virtual key not installed | `TeslaKeyNotPairedException` (fault `UNKNOWN_KEY_ID` or session status `KEY_NOT_ON_WHITELIST`) | Open `https://tesla.com/_ak/<your-domain>` in the Tesla app and approve the key in the car. |
-| Vehicle asleep / offline | `TeslaVehicleAsleepException` (HTTP 503, or 408 "vehicle is offline") | Call `ICoilClient.WakeUpAsync`, run `coil wake <VIN>`, or enable `AutoWake`. |
-| Vehicle does not support the protocol | `TeslaCommandException` with `StatusCode = 422` | Pre-2021 Model S/X and similar vehicles use the legacy REST commands, which Coil does not implement. |
+| Vehicle asleep / offline | `TeslaVehicleAsleepException` (HTTP 503, or 408 "vehicle is offline") | Call `ICoilProClient.WakeUpAsync`, run `coilpro wake <VIN>`, or enable `AutoWake`. |
+| Vehicle does not support the protocol | `TeslaCommandException` with `StatusCode = 422` | Pre-2021 Model S/X and similar vehicles use the legacy REST commands, which CoilPro does not implement. |
 | Protocol fault from the vehicle | `TeslaCommandException` with `Fault` set | See `TeslaMessageFault`; retryable faults are already retried. |
 | Missing scope / token | `TeslaCommandException` with `StatusCode` 401 or 403 | Log in again with `vehicle_cmds` and `vehicle_charging_cmds`. Tesla answers a missing scope with `403 Unauthorized missing scopes` (observed on other Fleet API endpoints; not yet observed on `signed_command`). |
 | Vehicle refuses | `CommandResult.Success == false` | Read `Reason`; this is not an error. |
 
 ## CLI
 
-The `coil` tool exposes the same commands:
+The `coilpro` tool exposes the same commands:
 
 ```bash
-coil keys generate                       # once; also needed for partner registration
-coil login                               # default scopes include vehicle_cmds / vehicle_charging_cmds
+coilpro keys generate                       # once; also needed for partner registration
+coilpro login                               # default scopes include vehicle_cmds / vehicle_charging_cmds
 
-coil cmd <VIN> flash                     # harmless first test
-coil cmd <VIN> charge-limit 80
-coil cmd <VIN> temps 21 21
-coil cmd <VIN> climate-on --wake         # wake first if asleep (billed)
-coil cmd <VIN> lock --timeout 60
+coilpro cmd <VIN> flash                     # harmless first test
+coilpro cmd <VIN> charge-limit 80
+coilpro cmd <VIN> temps 21 21
+coilpro cmd <VIN> climate-on --wake         # wake first if asleep (billed)
+coilpro cmd <VIN> lock --timeout 60
 ```
 
 Commands: `lock`, `unlock`, `honk`, `flash`, `climate-on`, `climate-off`, `temps <driverC> <passengerC>`, `charge-start`, `charge-stop`, `charge-limit <percent>`, `charge-port-open`, `charging-amps <amps>`.
 
-The CLI loads the private key from `~/.coil/keys/private-key.pem` and the tokens/region from the last `coil login`. Output and exit codes:
+The CLI loads the private key from `~/.coilpro/keys/private-key.pem` and the tokens/region from the last `coilpro login`. Output and exit codes:
 
 | Output | Exit code |
 |---|---|
@@ -128,4 +128,4 @@ The CLI loads the private key from `~/.coil/keys/private-key.pem` and the tokens
 | other error, usage error | 1 |
 | `Refused: <reason>` | 2 |
 | key not paired (hint to open `https://tesla.com/_ak/<your registered domain>`) | 3 |
-| vehicle asleep (hint: `coil wake <VIN>` or `--wake`) | 4 |
+| vehicle asleep (hint: `coilpro wake <VIN>` or `--wake`) | 4 |

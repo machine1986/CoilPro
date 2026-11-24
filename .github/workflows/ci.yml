@@ -1,4 +1,4 @@
-# Continuous Integration for Coil.NET
+# Continuous Integration for CoilPro
 #
 # Builds and tests the solution on every push and pull request targeting main.
 # Runs against the full multi-target matrix (net10.0 + net8.0) so both the

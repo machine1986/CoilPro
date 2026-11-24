@@ -1,4 +1,4 @@
-// AspNetCoreQuickstart - Coil.NET in a minimal API.
+// AspNetCoreQuickstart - CoilPro in a minimal API.
 //
 //   GET  /login                     redirect to Tesla's authorize page
 //   GET  /callback                  Tesla redirects back here; exchanges the code, stores tokens
@@ -7,15 +7,15 @@
 //   POST /vehicles/{vin}/flash      signed command: flash lights
 //
 // Configuration (appsettings.json / user-secrets / env vars such as Coil__ClientId):
-//   Coil:ClientId, Coil:ClientSecret, Coil:RedirectUri (must be localhost), Coil:Region,
-//   Coil:PrivateKeyPemFile (path) or Coil:PrivateKeyPem (inline PEM) for signed commands.
+//   CoilPro:ClientId, CoilPro:ClientSecret, CoilPro:RedirectUri (must be localhost), CoilPro:Region,
+//   CoilPro:PrivateKeyPemFile (path) or CoilPro:PrivateKeyPem (inline PEM) for signed commands.
 using System.Collections.Concurrent;
-using Coil;
-using Coil.AspNetCore;
-using Coil.Commands;
+using CoilPro;
+using CoilPro.AspNetCore;
+using CoilPro.Commands;
 
 var builder = WebApplication.CreateBuilder(args);
-var cfg = builder.Configuration.GetSection("Coil");
+var cfg = builder.Configuration.GetSection("CoilPro");
 
 // Reads the private key lazily: the app starts (and /login, /vehicles work) even without a key;
 // only the command endpoint needs it.
@@ -29,14 +29,14 @@ TeslaKeyPair LoadKeyPair(IServiceProvider _)
     }
 
     return string.IsNullOrWhiteSpace(pem)
-        ? throw new InvalidOperationException("Set Coil:PrivateKeyPemFile or Coil:PrivateKeyPem to send signed commands.")
+        ? throw new InvalidOperationException("Set CoilPro:PrivateKeyPemFile or CoilPro:PrivateKeyPem to send signed commands.")
         : TeslaKeyPair.FromPrivateKeyPem(pem);
 }
 
-// Registers ITeslaAuthClient, ITokenStore (in-memory default), ITeslaTokenProvider and ICoilClient.
-builder.Services.AddCoilApi(o =>
+// Registers ITeslaAuthClient, ITokenStore (in-memory default), ITeslaTokenProvider and ICoilProClient.
+builder.Services.AddCoilProApi(o =>
 {
-    o.ClientId = cfg["ClientId"] ?? throw new InvalidOperationException("Coil:ClientId is missing.");
+    o.ClientId = cfg["ClientId"] ?? throw new InvalidOperationException("CoilPro:ClientId is missing.");
     o.ClientSecret = string.IsNullOrEmpty(cfg["ClientSecret"]) ? null : cfg["ClientSecret"];
     o.RedirectUri = new Uri(cfg["RedirectUri"] ?? "http://localhost:8080/callback");
     o.Region = Enum.TryParse<TeslaRegion>(cfg["Region"], true, out var region) ? region : TeslaRegion.Europe;
@@ -44,8 +44,8 @@ builder.Services.AddCoilApi(o =>
              | TeslaScopes.VehicleLocation | TeslaScopes.VehicleCmds | TeslaScopes.VehicleChargingCmds;
 });
 
-// Registers ICoilCommands (signed commands) with the key pair above.
-builder.Services.AddCoilCommands(LoadKeyPair, o => o.AutoWake = true);
+// Registers ICoilProCommands (signed commands) with the key pair above.
+builder.Services.AddCoilProCommands(LoadKeyPair, o => o.AutoWake = true);
 
 // Sample-only: remember the PKCE verifier per login attempt (state -> verifier).
 // A real app would keep this in the user's session or a distributed cache.
@@ -53,7 +53,7 @@ var pendingLogins = new ConcurrentDictionary<string, string>();
 
 var app = builder.Build();
 
-app.MapGet("/", () => "Coil.NET AspNetCoreQuickstart - open /login to sign in with your Tesla account.");
+app.MapGet("/", () => "CoilPro AspNetCoreQuickstart - open /login to sign in with your Tesla account.");
 
 app.MapGet("/login", (ITeslaAuthClient auth) =>
 {
@@ -80,16 +80,16 @@ app.MapGet("/callback", async (HttpRequest http, ITeslaAuthClient auth, ITokenSt
     return Results.Ok(new { loggedIn = true, expiresAt = tokens.ExpiresAt, hasRefreshToken = tokens.RefreshToken is not null });
 });
 
-app.MapGet("/vehicles", async (ICoilClient client, CancellationToken ct) =>
+app.MapGet("/vehicles", async (ICoilProClient client, CancellationToken ct) =>
     Results.Ok((await client.GetVehiclesAsync(ct)).Select(v => new { v.Vin, v.DisplayName, v.State })));
 
-app.MapGet("/vehicles/{vin}/charge", async (string vin, ICoilClient client, CancellationToken ct) =>
+app.MapGet("/vehicles/{vin}/charge", async (string vin, ICoilProClient client, CancellationToken ct) =>
 {
     var data = await client.GetVehicleDataAsync(vin, VehicleDataEndpoint.ChargeState, ct);
     return Results.Ok(data.ChargeState);
 });
 
-app.MapPost("/vehicles/{vin}/flash", async (string vin, ICoilCommands commands, CancellationToken ct) =>
+app.MapPost("/vehicles/{vin}/flash", async (string vin, ICoilProCommands commands, CancellationToken ct) =>
 {
     try
     {

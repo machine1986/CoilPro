@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Coil.NET are documented here. The format follows
+All notable changes to CoilPro are documented here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); versions follow [Semantic Versioning](https://semver.org/)
 (derived from git tags via MinVer).
 
@@ -14,12 +14,12 @@ recorded in [`docs/api-deviations.md`](./docs/api-deviations.md).
 
 ### Added
 
-- **Core (`Coil`)**: regional Fleet API endpoints (EU, North America); `ITeslaAuthClient` with authorization code + PKCE, client credentials and refresh; `ITokenStore` / `InMemoryTokenStore` and `ITeslaTokenProvider` with automatic refresh.
+- **Core (`CoilPro`)**: regional Fleet API endpoints (EU, North America); `ITeslaAuthClient` with authorization code + PKCE, client credentials and refresh; `ITokenStore` / `InMemoryTokenStore` and `ITeslaTokenProvider` with automatic refresh.
 - **Partner onboarding**: `TeslaKeyPair` (P-256 key generation, PEM export byte-identical to `openssl`, hex export), `ITeslaPartnerClient` (`RegisterAsync`, `GetPublicKeyAsync`, partner-token caching).
-- **Read endpoints**: `ICoilClient` with `GetVehiclesAsync`, `GetVehicleDataAsync` (per-segment `VehicleDataEndpoint` filter), `WakeUpAsync`, `GetChargingHistoryAsync`, `LastRateLimit`; tolerant record models; retry/backoff with `Retry-After` support (`CoilClientOptions`); `TeslaApiException` and `RateLimitInfo`.
-- **Vehicle Command Protocol (`Coil.Commands`)**: native C# implementation (ECDH session handshake, ECDSA, HMAC and AES-GCM, Protobuf envelope, response decryption, retry on protocol faults) behind `ICoilCommands`: lock, unlock, honk, flash, start/stop climate, set temperatures, start/stop charging, set charge limit, open charge port, set charging amps. Opt-in `AutoWake`. Failures surface as `TeslaCommandException` (`TeslaKeyNotPairedException`, `TeslaVehicleAsleepException`); vehicle refusals as `CommandResult`.
-- **ASP.NET Core (`Coil.AspNetCore`)**: `AddCoilApi`, `AddCoilCommands`, OAuth callback parsing helper.
-- **CLI (`Coil.Cli`, command `coil`)**: `keys generate|show`, `partner register|public-key`, `login` (loopback redirect), `vehicles`, `data`, `wake`, `cmd`.
+- **Read endpoints**: `ICoilProClient` with `GetVehiclesAsync`, `GetVehicleDataAsync` (per-segment `VehicleDataEndpoint` filter), `WakeUpAsync`, `GetChargingHistoryAsync`, `LastRateLimit`; tolerant record models; retry/backoff with `Retry-After` support (`CoilProClientOptions`); `TeslaApiException` and `RateLimitInfo`.
+- **Vehicle Command Protocol (`CoilPro.Commands`)**: native C# implementation (ECDH session handshake, ECDSA, HMAC and AES-GCM, Protobuf envelope, response decryption, retry on protocol faults) behind `ICoilProCommands`: lock, unlock, honk, flash, start/stop climate, set temperatures, start/stop charging, set charge limit, open charge port, set charging amps. Opt-in `AutoWake`. Failures surface as `TeslaCommandException` (`TeslaKeyNotPairedException`, `TeslaVehicleAsleepException`); vehicle refusals as `CommandResult`.
+- **ASP.NET Core (`CoilPro.AspNetCore`)**: `AddCoilProProApi`, `AddCoilProProCommands`, OAuth callback parsing helper.
+- **CLI (`CoilPro.Cli`, command `coilpro`)**: `keys generate|show`, `partner register|public-key`, `login` (loopback redirect), `vehicles`, `data`, `wake`, `cmd`.
 - DocFX documentation site, getting-started / onboarding / vehicle-data / commands articles.
 
 ### Verified live (EU, one Model Y)
@@ -42,5 +42,5 @@ recorded in [`docs/api-deviations.md`](./docs/api-deviations.md).
 - Pre-2021 Model S/X and other vehicles that do not support the Vehicle Command Protocol (legacy REST commands) are not supported.
 - Public API surface may still change before 1.0.
 
-[Unreleased]: https://github.com/machine1986/Coil.NET/compare/v0.1.0-preview.1...HEAD
-[0.1.0-preview.1]: https://github.com/machine1986/Coil.NET/releases/tag/v0.1.0-preview.1
+[Unreleased]: https://github.com/machine1986/CoilPro/compare/v0.1.0-preview.1...HEAD
+[0.1.0-preview.1]: https://github.com/machine1986/CoilPro/releases/tag/v0.1.0-preview.1

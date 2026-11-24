@@ -23,10 +23,10 @@
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <Authors>dotnet services</Authors>
     <Company>dotnet services</Company>
-    <Product>Coil.NET</Product>
+    <Product>CoilPro</Product>
     <Description>Unofficial .NET SDK for the Tesla Fleet API. Not affiliated with Tesla, Inc.</Description>
-    <PackageProjectUrl>https://github.com/machine1986/Coil.NET</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/machine1986/Coil.NET</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/machine1986/CoilPro</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/machine1986/CoilPro</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>tesla;fleet-api;ev;electric-vehicle;dotnet</PackageTags>

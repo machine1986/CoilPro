@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Coil\Coil.csproj" />
-    <ProjectReference Include="..\..\src\Coil.Commands\Coil.Commands.csproj" />
-    <ProjectReference Include="..\..\src\Coil.AspNetCore\Coil.AspNetCore.csproj" />
+    <ProjectReference Include="..\..\src\CoilPro\CoilPro.csproj" />
+    <ProjectReference Include="..\..\src\CoilPro.Commands\CoilPro.Commands.csproj" />
+    <ProjectReference Include="..\..\src\CoilPro.AspNetCore\CoilPro.AspNetCore.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

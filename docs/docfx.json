@@ -5,9 +5,9 @@
         {
           "src": "../src",
           "files": [
-            "Coil/Coil.csproj",
-            "Coil.Commands/Coil.Commands.csproj",
-            "Coil.AspNetCore/Coil.AspNetCore.csproj"
+            "CoilPro/CoilPro.csproj",
+            "CoilPro.Commands/CoilPro.Commands.csproj",
+            "CoilPro.AspNetCore/CoilPro.AspNetCore.csproj"
           ]
         }
       ],
@@ -32,12 +32,12 @@
     "output": "_site",
     "template": ["default", "modern"],
     "globalMetadata": {
-      "_appTitle": "Coil.NET",
-      "_appName": "Coil.NET",
-      "_appFooter": "Coil.NET — unofficial, not affiliated with Tesla, Inc.",
+      "_appTitle": "CoilPro",
+      "_appName": "CoilPro",
+      "_appFooter": "CoilPro — unofficial, not affiliated with Tesla, Inc.",
       "_enableSearch": true,
       "_gitContribute": {
-        "repo": "https://github.com/machine1986/Coil.NET",
+        "repo": "https://github.com/machine1986/CoilPro",
         "branch": "main"
       }
     }

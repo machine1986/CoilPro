@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\Coil\Coil.csproj" />
-    <ProjectReference Include="..\..\src\Coil.Commands\Coil.Commands.csproj" />
+    <ProjectReference Include="..\..\src\CoilPro\CoilPro.csproj" />
+    <ProjectReference Include="..\..\src\CoilPro.Commands\CoilPro.Commands.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

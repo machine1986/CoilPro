@@ -1,13 +1,13 @@
-# Release workflow for Coil.NET
+# Release workflow for CoilPro
 #
 # Triggered by pushing a version tag (e.g. `v0.1.0-preview.1`). Builds, tests,
-# packs the libraries and the `coil` dotnet tool, and publishes them to NuGet.org.
+# packs the libraries and the `coilpro` dotnet tool, and publishes them to NuGet.org.
 # MinVer reads the version from the tag (MinVerTagPrefix=v, Directory.Build.props).
 #
 # MANUAL PREP STEP (not automated by this file):
 #   Add a repository secret named NUGET_API_KEY (Settings > Secrets and
 #   variables > Actions > New repository secret) containing a NuGet.org API
-#   key scoped to the Coil packages before the first release tag is pushed.
+#   key scoped to the CoilPro packages before the first release tag is pushed.
 name: Release
 
 on:
@@ -26,7 +26,7 @@ jobs:
   pack-and-publish:
     # Publish only from the public SDK repository, so SourceLink and package metadata point at it.
     # The private working repo carries the same workflow file but must never publish.
-    if: github.repository == 'machine1986/Coil.NET'
+    if: github.repository == 'machine1986/CoilPro'
     runs-on: ubuntu-latest
 
     # The `secrets` context is NOT available in a step-level `if:` (only
@@ -63,30 +63,30 @@ jobs:
         run: dotnet test --configuration Release --no-build
 
       # Pack the libraries and the CLI tool; samples and tests are not packable.
-      - name: Pack Coil
+      - name: Pack CoilPro
         run: >
-          dotnet pack src/Coil/Coil.csproj
+          dotnet pack src/CoilPro/CoilPro.csproj
           --configuration Release
           --no-build
           --output "${{ env.PACKAGE_OUTPUT_DIR }}"
 
-      - name: Pack Coil.Commands
+      - name: Pack CoilPro.Commands
         run: >
-          dotnet pack src/Coil.Commands/Coil.Commands.csproj
+          dotnet pack src/CoilPro.Commands/CoilPro.Commands.csproj
           --configuration Release
           --no-build
           --output "${{ env.PACKAGE_OUTPUT_DIR }}"
 
-      - name: Pack Coil.AspNetCore
+      - name: Pack CoilPro.AspNetCore
         run: >
-          dotnet pack src/Coil.AspNetCore/Coil.AspNetCore.csproj
+          dotnet pack src/CoilPro.AspNetCore/CoilPro.AspNetCore.csproj
           --configuration Release
           --no-build
           --output "${{ env.PACKAGE_OUTPUT_DIR }}"
 
-      - name: Pack Coil.Cli (dotnet tool)
+      - name: Pack CoilPro.Cli (dotnet tool)
         run: >
-          dotnet pack tools/Coil.Cli/Coil.Cli.csproj
+          dotnet pack tools/CoilPro.Cli/CoilPro.Cli.csproj
           --configuration Release
           --no-build
           --output "${{ env.PACKAGE_OUTPUT_DIR }}"

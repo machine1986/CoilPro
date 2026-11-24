@@ -114,7 +114,7 @@ Key pairs (client c/C, vehicle v/V) are in `protocol.md`. Further vectors: `ecdh
 
 Byte-exact tests need an injectable random source (nonce, uuid, routing address) and clock.
 
-## 10. Live observations (2026-11-24, EU Model Y, fw 2026.38.6, `coil cmd … --debug`)
+## 10. Live observations (2026-11-24, EU Model Y, fw 2026.38.6, `coilpro cmd … --debug`)
 
 - **Infotainment advertises detached encryption** (`SessionInfo.flags` bit 0 set) → commands are signed with `AES_GCM_DETACHED`.
 - **VCSEC does not** → commands are signed with `HMAC_PERSONALIZED`.

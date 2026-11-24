@@ -1,11 +1,11 @@
 # AspNetCoreQuickstart
 
-Minimal API showing Coil.NET with `AddCoilApi` + `AddCoilCommands`. Unofficial; not affiliated with Tesla, Inc.
+Minimal API showing CoilPro with `AddCoilProApi` + `AddCoilProCommands`. Unofficial; not affiliated with Tesla, Inc.
 
 ## Prerequisites
 
 - A Tesla developer application whose redirect URI is `http://localhost:8080/callback` (Tesla only accepts `localhost` redirects).
-- For the flash endpoint: a P-256 private key (`coil keys generate`), its public key registered via partner
+- For the flash endpoint: a P-256 private key (`coilpro keys generate`), its public key registered via partner
   registration, and the virtual key paired in the car via `https://tesla.com/_ak/<your-domain>`.
 
 ## Configure
@@ -14,18 +14,18 @@ Keep secrets out of `appsettings.json`; use user-secrets:
 
 ```bash
 cd samples/AspNetCoreQuickstart
-dotnet user-secrets set "Coil:ClientId" "<client id>"
-dotnet user-secrets set "Coil:ClientSecret" "<client secret>"      # optional
-dotnet user-secrets set "Coil:PrivateKeyPemFile" "/path/to/private-key.pem"
+dotnet user-secrets set "CoilPro:ClientId" "<client id>"
+dotnet user-secrets set "CoilPro:ClientSecret" "<client secret>"      # optional
+dotnet user-secrets set "CoilPro:PrivateKeyPemFile" "/path/to/private-key.pem"
 ```
 
 | Key | Meaning |
 |---|---|
-| `Coil:ClientId` | Application client id (required) |
-| `Coil:ClientSecret` | Client secret (optional) |
-| `Coil:RedirectUri` | Registered redirect URI, default `http://localhost:8080/callback` |
-| `Coil:Region` | `Europe` or `NorthAmerica` |
-| `Coil:PrivateKeyPemFile` / `Coil:PrivateKeyPem` | Private key for signed commands |
+| `CoilPro:ClientId` | Application client id (required) |
+| `CoilPro:ClientSecret` | Client secret (optional) |
+| `CoilPro:RedirectUri` | Registered redirect URI, default `http://localhost:8080/callback` |
+| `CoilPro:Region` | `Europe` or `NorthAmerica` |
+| `CoilPro:PrivateKeyPemFile` / `CoilPro:PrivateKeyPem` | Private key for signed commands |
 
 Environment variables work too (`Coil__ClientId=...`).
 
