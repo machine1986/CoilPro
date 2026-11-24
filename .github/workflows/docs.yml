@@ -25,6 +25,9 @@ concurrency:
 
 jobs:
   build:
+    # Docs are published from the public SDK repository only (GitHub Pages is not enabled in the
+    # private working repo).
+    if: github.repository == 'machine1986/CoilPro'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
