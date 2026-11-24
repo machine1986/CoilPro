@@ -2,6 +2,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Coil\Coil.csproj" />
+    <ProjectReference Include="..\Coil.Commands\Coil.Commands.csproj" />
   </ItemGroup>
 
   <!--

@@ -10,14 +10,19 @@ internal static class CliClientFactory
     /// Bundles the <see cref="ICoilClient"/> and the two <see cref="HttpClient"/> instances backing it
     /// (auth + Fleet API), so callers can dispose them together with a single <c>using</c>.
     /// </summary>
-    public sealed class CliClients(HttpClient authHttp, HttpClient apiHttp, ICoilClient coilClient) : IDisposable
+    public sealed class CliClients(HttpClient authHttp, HttpClient apiHttp, ICoilClient coilClient, ITeslaTokenProvider tokenProvider) : IDisposable
     {
         public ICoilClient CoilClient { get; } = coilClient;
+
+        /// <summary>The Fleet API <see cref="HttpClient"/> (regional base address), shared with signed commands.</summary>
+        public HttpClient ApiHttp { get; } = apiHttp;
+
+        public ITeslaTokenProvider TokenProvider { get; } = tokenProvider;
 
         public void Dispose()
         {
             authHttp.Dispose();
-            apiHttp.Dispose();
+            ApiHttp.Dispose();
         }
     }
 
@@ -43,6 +48,6 @@ internal static class CliClientFactory
         var apiHttp = new HttpClient { BaseAddress = TeslaEndpoints.For(session.Region).FleetApiBaseUrl };
         ICoilClient coilClient = new CoilClient(apiHttp, tokenProvider);
 
-        return new CliClients(authHttp, apiHttp, coilClient);
+        return new CliClients(authHttp, apiHttp, coilClient, tokenProvider);
     }
 }
