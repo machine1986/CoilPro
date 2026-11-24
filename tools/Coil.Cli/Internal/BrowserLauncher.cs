@@ -8,11 +8,16 @@ internal static class BrowserLauncher
     /// <summary>Attempts to open <paramref name="url"/> in the user's default browser. Never throws.</summary>
     public static bool TryOpen(Uri url)
     {
+        // AbsoluteUri, never ToString(): ToString() unescapes "%20" to a space. macOS `open` then treats the
+        // string as an invalid URL and percent-encodes all of it again, "%" included, so an already encoded
+        // redirect_uri arrives at Tesla as "http%253A%252F%252F..." and is rejected as "not registered".
+        var target = url.AbsoluteUri;
+
         try
         {
             if (OperatingSystem.IsWindows())
             {
-                Process.Start(new ProcessStartInfo("cmd", $"/c start \"\" \"{url}\"")
+                Process.Start(new ProcessStartInfo("cmd", $"/c start \"\" \"{target}\"")
                 {
                     CreateNoWindow = true,
                     UseShellExecute = false,
@@ -20,11 +25,11 @@ internal static class BrowserLauncher
             }
             else if (OperatingSystem.IsMacOS())
             {
-                Process.Start(new ProcessStartInfo("open", $"\"{url}\"") { UseShellExecute = false });
+                Process.Start(new ProcessStartInfo("open", $"\"{target}\"") { UseShellExecute = false });
             }
             else
             {
-                Process.Start(new ProcessStartInfo("xdg-open", $"\"{url}\"") { UseShellExecute = false });
+                Process.Start(new ProcessStartInfo("xdg-open", $"\"{target}\"") { UseShellExecute = false });
             }
 
             return true;

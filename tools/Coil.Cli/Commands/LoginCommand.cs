@@ -68,7 +68,8 @@ internal static class LoginCommand
         Console.WriteLine();
         Console.WriteLine("Opening your browser to sign in with Tesla...");
         Console.WriteLine("If it doesn't open automatically, visit:");
-        Console.WriteLine($"  {authorizationRequest.AuthorizationUrl}");
+        // AbsoluteUri keeps the escaping (ToString() turns %20 into spaces), so the printed URL can be copied as is.
+        Console.WriteLine($"  {authorizationRequest.AuthorizationUrl.AbsoluteUri}");
         Console.WriteLine();
 
         if (!BrowserLauncher.TryOpen(authorizationRequest.AuthorizationUrl))
