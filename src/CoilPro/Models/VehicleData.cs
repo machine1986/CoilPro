@@ -597,20 +597,84 @@ public sealed record ClosuresState
     [JsonExtensionData] public IDictionary<string, JsonElement>? AdditionalData { get; init; }
 }
 
-/// <summary>Charge schedule block returned for the <c>charge_schedule_data</c> endpoint. Shape is UNVERIFIED; fields land in <c>AdditionalData</c>.</summary>
+/// <summary>
+/// Protobuf-style timestamp (<c>{ "seconds": …, "nanos": … }</c>) as used by the schedule blocks (confirmed live 2026-11-24).
+/// </summary>
+public sealed record ProtoTimestamp
+{
+    /// <summary>Unix seconds (<c>seconds</c>).</summary>
+    [JsonPropertyName("seconds")] public long? Seconds { get; init; }
+    /// <summary>Nanoseconds within the second (<c>nanos</c>).</summary>
+    [JsonPropertyName("nanos")] public int? Nanos { get; init; }
+
+    /// <summary>The timestamp as <see cref="DateTimeOffset"/> (UTC); null when <see cref="Seconds"/> is missing.</summary>
+    [JsonIgnore]
+    public DateTimeOffset? Value => Seconds is { } s ? DateTimeOffset.FromUnixTimeSeconds(s).AddTicks((Nanos ?? 0) / 100) : null;
+}
+
+/// <summary>Charge schedule block returned for the <c>charge_schedule_data</c> endpoint (shape confirmed live 2026-11-24).</summary>
 public sealed record ChargeScheduleData
 {
-    /// <summary>Time of the reading, Unix epoch milliseconds (<c>timestamp</c>).</summary>
-    [JsonPropertyName("timestamp")] public long? Timestamp { get; init; }
+    /// <summary>Configured charge schedules (<c>charge_schedules</c>).</summary>
+    [JsonPropertyName("charge_schedules")] public IReadOnlyList<VehicleChargeSchedule>? ChargeSchedules { get; init; }
+    /// <summary>Charge buffer, minutes (<c>charge_buffer</c>).</summary>
+    [JsonPropertyName("charge_buffer")] public int? ChargeBuffer { get; init; }
+    /// <summary>Maximum number of schedules the vehicle accepts (<c>max_num_charge_schedules</c>).</summary>
+    [JsonPropertyName("max_num_charge_schedules")] public int? MaxNumChargeSchedules { get; init; }
+    /// <summary>Whether a next schedule is pending (<c>next_schedule</c>).</summary>
+    [JsonPropertyName("next_schedule")] public bool? NextSchedule { get; init; }
+    /// <summary><c>show_schedule_complete_state</c>.</summary>
+    [JsonPropertyName("show_schedule_complete_state")] public bool? ShowScheduleCompleteState { get; init; }
+    /// <summary>Active charge window, if any (<c>charge_schedule_window</c>).</summary>
+    [JsonPropertyName("charge_schedule_window")] public JsonElement? ChargeScheduleWindow { get; init; }
+    /// <summary>Time of the reading (<c>timestamp</c>, protobuf-style seconds/nanos).</summary>
+    [JsonPropertyName("timestamp")] public ProtoTimestamp? Timestamp { get; init; }
     /// <summary>Fields in the response that are not modeled by this type, keyed by JSON property name.</summary>
     [JsonExtensionData] public IDictionary<string, JsonElement>? AdditionalData { get; init; }
 }
 
-/// <summary>Preconditioning schedule block returned for the <c>preconditioning_schedule_data</c> endpoint. Shape is UNVERIFIED; fields land in <c>AdditionalData</c>.</summary>
+/// <summary>One charge schedule as reported by the vehicle.</summary>
+public sealed record VehicleChargeSchedule
+{
+    /// <summary>Schedule id (<c>id</c>).</summary>
+    [JsonPropertyName("id")] public ulong? Id { get; init; }
+    /// <summary>Name, if any (<c>name</c>).</summary>
+    [JsonPropertyName("name")] public string? Name { get; init; }
+    /// <summary>Day bitmask, Sunday = 1 … Saturday = 64 (<c>days_of_week</c>).</summary>
+    [JsonPropertyName("days_of_week")] public int? DaysOfWeek { get; init; }
+    /// <summary>Whether a start time is set (<c>start_enabled</c>).</summary>
+    [JsonPropertyName("start_enabled")] public bool? StartEnabled { get; init; }
+    /// <summary>Start, minutes after midnight (<c>start_time</c>).</summary>
+    [JsonPropertyName("start_time")] public int? StartTime { get; init; }
+    /// <summary>Whether an end time is set (<c>end_enabled</c>).</summary>
+    [JsonPropertyName("end_enabled")] public bool? EndEnabled { get; init; }
+    /// <summary>End, minutes after midnight (<c>end_time</c>).</summary>
+    [JsonPropertyName("end_time")] public int? EndTime { get; init; }
+    /// <summary>Runs once (<c>one_time</c>).</summary>
+    [JsonPropertyName("one_time")] public bool? OneTime { get; init; }
+    /// <summary>Active (<c>enabled</c>).</summary>
+    [JsonPropertyName("enabled")] public bool? Enabled { get; init; }
+    /// <summary>Latitude of the bound location (<c>latitude</c>).</summary>
+    [JsonPropertyName("latitude")] public double? Latitude { get; init; }
+    /// <summary>Longitude of the bound location (<c>longitude</c>).</summary>
+    [JsonPropertyName("longitude")] public double? Longitude { get; init; }
+    /// <summary>Fields in the response that are not modeled by this type, keyed by JSON property name.</summary>
+    [JsonExtensionData] public IDictionary<string, JsonElement>? AdditionalData { get; init; }
+}
+
+/// <summary>Preconditioning schedule block returned for the <c>preconditioning_schedule_data</c> endpoint (shape confirmed live 2026-11-24).</summary>
 public sealed record PreconditioningScheduleData
 {
-    /// <summary>Time of the reading, Unix epoch milliseconds (<c>timestamp</c>).</summary>
-    [JsonPropertyName("timestamp")] public long? Timestamp { get; init; }
+    /// <summary>Configured preconditioning schedules (<c>precondition_schedules</c>).</summary>
+    [JsonPropertyName("precondition_schedules")] public IReadOnlyList<JsonElement>? PreconditionSchedules { get; init; }
+    /// <summary>Maximum number of schedules the vehicle accepts (<c>max_num_precondition_schedules</c>).</summary>
+    [JsonPropertyName("max_num_precondition_schedules")] public int? MaxNumPreconditionSchedules { get; init; }
+    /// <summary>Whether a next schedule is pending (<c>next_schedule</c>).</summary>
+    [JsonPropertyName("next_schedule")] public bool? NextSchedule { get; init; }
+    /// <summary>Active preconditioning window, if any (<c>preconditioning_schedule_window</c>).</summary>
+    [JsonPropertyName("preconditioning_schedule_window")] public JsonElement? PreconditioningScheduleWindow { get; init; }
+    /// <summary>Time of the reading (<c>timestamp</c>, protobuf-style seconds/nanos).</summary>
+    [JsonPropertyName("timestamp")] public ProtoTimestamp? Timestamp { get; init; }
     /// <summary>Fields in the response that are not modeled by this type, keyed by JSON property name.</summary>
     [JsonExtensionData] public IDictionary<string, JsonElement>? AdditionalData { get; init; }
 }
