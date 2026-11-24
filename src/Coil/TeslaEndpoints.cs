@@ -9,8 +9,16 @@ namespace Coil;
 /// </remarks>
 public sealed record TeslaEndpoints
 {
-    /// <summary>OAuth 2.0 authorization / token host (region-independent).</summary>
+    /// <summary>OAuth 2.0 token host (region-independent): code exchange, refresh, client credentials.</summary>
     public required Uri AuthBaseUrl { get; init; }
+
+    /// <summary>
+    /// Host of the interactive authorize page (region-independent), where the user signs in. This is
+    /// <c>auth.tesla.com</c>, not the <see cref="AuthBaseUrl"/> token host — sending the user to
+    /// <c>fleet-auth.prd.vn.cloud.tesla.com/oauth2/v3/authorize</c> fails with
+    /// "The 'redirect_uri' supplied is not registered for this 'client_id'".
+    /// </summary>
+    public Uri AuthorizeBaseUrl { get; init; } = new("https://auth.tesla.com");
 
     /// <summary>Fleet API host for the region. Also used as the token <c>audience</c>.</summary>
     public required Uri FleetApiBaseUrl { get; init; }

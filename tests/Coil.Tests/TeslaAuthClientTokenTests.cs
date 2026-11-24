@@ -51,6 +51,8 @@ public class TeslaAuthClientTokenTests
         Assert.Equal("auth-code", form["code"]);
         Assert.Equal("verifier-value", form["code_verifier"]);
         Assert.Equal(options.RedirectUri!.ToString(), form["redirect_uri"]);
+        Assert.Equal("https://fleet-api.prd.na.vn.cloud.tesla.com", form["audience"]);
+        Assert.Equal("fleet-auth.prd.vn.cloud.tesla.com", captured.Uri.Host);
         Assert.False(form.ContainsKey("client_secret"));
     }
 

@@ -18,7 +18,17 @@ internal sealed class CliOptions
 
     public TeslaRegion Region { get; private init; } = TeslaRegion.Europe;
 
-    public TeslaScopes Scopes { get; private init; } = TeslaScopes.Openid | TeslaScopes.OfflineAccess;
+    /// <summary>
+    /// Scopes for <c>coil login</c> when <c>--scopes</c> is not given: everything the vehicle commands of this
+    /// CLI need (read data incl. location, send commands). Bare <c>openid offline_access</c> logs in fine but
+    /// every vehicle call then fails with "missing scopes".
+    /// </summary>
+    public static readonly TeslaScopes DefaultLoginScopes =
+        TeslaScopes.Openid | TeslaScopes.OfflineAccess | TeslaScopes.UserData
+        | TeslaScopes.VehicleDeviceData | TeslaScopes.VehicleLocation
+        | TeslaScopes.VehicleCmds | TeslaScopes.VehicleChargingCmds;
+
+    public TeslaScopes Scopes { get; private init; } = DefaultLoginScopes;
 
     /// <summary>Fixed loopback port, or 0 to pick a free ephemeral port.</summary>
     public int Port { get; private init; }
@@ -99,7 +109,7 @@ internal sealed class CliOptions
             ClientSecret = clientSecret,
             Domain = domain,
             Region = region,
-            Scopes = scopes ?? (TeslaScopes.Openid | TeslaScopes.OfflineAccess),
+            Scopes = scopes ?? DefaultLoginScopes,
             Port = port,
             Timeout = timeout,
         };

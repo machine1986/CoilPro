@@ -84,7 +84,9 @@ internal static class CliApp
               --client-id <id>          OAuth client id                       (or env COIL_CLIENT_ID)
               --client-secret <secret>  OAuth client secret, if confidential   (or env COIL_CLIENT_SECRET)
               --region <eu|na>          Fleet API region, default: eu         (or env COIL_REGION)
-              --scopes <s1,s2,...>      Comma-separated scopes, default: openid,offline_access
+              --scopes <s1,s2,...>      Comma-separated scopes, default: openid,offline_access,user_data,
+                                          vehicle_device_data,vehicle_location,vehicle_cmds,
+                                          vehicle_charging_cmds
               --port <n>                Fixed loopback port (default: an ephemeral free port)
               --timeout <seconds>       Seconds to wait for the browser callback, default: 120
 

@@ -22,15 +22,16 @@ public class CreateAuthorizationRequestTests
     {
         var redirectUri = new Uri("https://app.example.com/callback");
         var options = CreateOptions(redirectUri);
-        var endpoints = TeslaEndpoints.For(options.Region);
         var client = new TeslaAuthClient(CreateHttpClientThatMustNotBeCalled(), options);
 
         var request = client.CreateAuthorizationRequest();
 
+        // Literal on purpose: the authorize page lives on auth.tesla.com, not on the fleet-auth token host.
+        // Pointing it at fleet-auth failed live with "redirect_uri ... not registered for this client_id".
         var url = request.AuthorizationUrl;
-        Assert.Equal(endpoints.AuthBaseUrl.Scheme, url.Scheme);
-        Assert.Equal(endpoints.AuthBaseUrl.Host, url.Host);
-        Assert.Contains("authorize", url.AbsolutePath);
+        Assert.Equal("https", url.Scheme);
+        Assert.Equal("auth.tesla.com", url.Host);
+        Assert.Equal("/oauth2/v3/authorize", url.AbsolutePath);
 
         var query = UrlEncoded.Parse(url.Query);
         Assert.Equal("code", query["response_type"]);

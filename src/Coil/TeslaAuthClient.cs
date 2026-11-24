@@ -53,7 +53,7 @@ public sealed class TeslaAuthClient : ITeslaAuthClient
             new("code_challenge_method", "S256"),
         ]);
 
-        var authorizeUrl = new Uri(_endpoints.AuthBaseUrl, "/oauth2/v3/authorize");
+        var authorizeUrl = new Uri(_endpoints.AuthorizeBaseUrl, "/oauth2/v3/authorize");
         var builder = new UriBuilder(authorizeUrl) { Query = query };
 
         return new AuthorizationRequest
@@ -83,6 +83,9 @@ public sealed class TeslaAuthClient : ITeslaAuthClient
         form.Add(new("code", code));
         form.Add(new("redirect_uri", redirectUri.ToString()));
         form.Add(new("code_verifier", codeVerifier));
+        // Required by Tesla's third-party-token docs for the code exchange; same bare-origin format as
+        // the client-credentials grant.
+        form.Add(new("audience", Audience));
 
         return SendTokenRequestAsync(form, ct);
     }
@@ -115,13 +118,15 @@ public sealed class TeslaAuthClient : ITeslaAuthClient
             new("client_id", _options.ClientId),
             new("client_secret", _options.ClientSecret),
             new("scope", _options.Scopes.ToScopeString()),
-            // Bare origin, no trailing slash: Uri.ToString() would append "/" and Tesla rejects that
-            // with 400 invalid_audience.
-            new("audience", _endpoints.FleetApiBaseUrl.GetLeftPart(UriPartial.Authority)),
+            new("audience", Audience),
         };
 
         return SendTokenRequestAsync(form, ct);
     }
+
+    // Bare origin, no trailing slash: Uri.ToString() would append "/" and Tesla rejects that with
+    // 400 invalid_audience.
+    private string Audience => _endpoints.FleetApiBaseUrl.GetLeftPart(UriPartial.Authority);
 
     private async Task<TeslaTokens> SendTokenRequestAsync(IEnumerable<KeyValuePair<string, string>> form, CancellationToken ct)
     {
