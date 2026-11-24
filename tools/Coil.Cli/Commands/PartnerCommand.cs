@@ -312,6 +312,10 @@ internal static class PartnerCommand
                 ClientId = clientId,
                 ClientSecret = clientSecret,
                 Region = region,
+                // The partner token needs data/command scopes, not the authorization-code default
+                // (openid offline_access): with that, GET partner_accounts/public_key answers
+                // 403 "Unauthorized missing scopes". Scope set as in Tesla's partner-token example.
+                Scopes = TeslaScopes.Openid | TeslaScopes.VehicleDeviceData | TeslaScopes.VehicleCmds | TeslaScopes.VehicleChargingCmds,
             };
 
             var authHttp = new HttpClient();
