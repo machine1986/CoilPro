@@ -25,6 +25,12 @@ public enum VehicleDataEndpoint
     LocationData = 1 << 6,
     /// <summary>Include <c>closures_state</c> in the response.</summary>
     ClosuresState = 1 << 7,
+    /// <summary>Include <c>charge_schedule_data</c> in the response.</summary>
+    ChargeScheduleData = 1 << 8,
+    /// <summary>Include <c>preconditioning_schedule_data</c> in the response.</summary>
+    PreconditioningScheduleData = 1 << 9,
+    /// <summary>Include <c>vehicle_data_combo</c> in the response.</summary>
+    VehicleDataCombo = 1 << 10,
 }
 
 /// <summary>Helpers for <see cref="VehicleDataEndpoint"/>.</summary>
@@ -50,6 +56,9 @@ public static class VehicleDataEndpointExtensions
         if (endpoints.HasFlag(VehicleDataEndpoint.VehicleConfig)) parts.Add("vehicle_config");
         if (endpoints.HasFlag(VehicleDataEndpoint.LocationData)) parts.Add("location_data");
         if (endpoints.HasFlag(VehicleDataEndpoint.ClosuresState)) parts.Add("closures_state");
+        if (endpoints.HasFlag(VehicleDataEndpoint.ChargeScheduleData)) parts.Add("charge_schedule_data");
+        if (endpoints.HasFlag(VehicleDataEndpoint.PreconditioningScheduleData)) parts.Add("preconditioning_schedule_data");
+        if (endpoints.HasFlag(VehicleDataEndpoint.VehicleDataCombo)) parts.Add("vehicle_data_combo");
 
         return string.Join(';', parts);
     }
