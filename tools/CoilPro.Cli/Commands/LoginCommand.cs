@@ -47,6 +47,8 @@ internal static class LoginCommand
             Region = options.Region,
             Scopes = options.Scopes,
             RedirectUri = redirectUri,
+            // Re-ask for scopes the user has not granted yet (e.g. energy scopes added after a first login).
+            PromptMissingScopes = true,
         };
 
         using var http = new HttpClient();

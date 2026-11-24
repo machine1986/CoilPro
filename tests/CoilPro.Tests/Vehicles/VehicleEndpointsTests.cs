@@ -252,6 +252,16 @@ public class VehicleEndpointsTests
         Assert.True(status.Result);
     }
 
+    [Fact]
+    public async Task GetMobileEnabled_ParsesBareBoolean_AsObservedLive()
+    {
+        var (client, _) = Setup("""{"response":true}""");
+
+        var status = await client.GetMobileEnabledAsync(Vin);
+
+        Assert.True(status.Result);
+    }
+
     private const string InviteJson = """
         {"id":429509621657,"owner_id":429511308124,"share_user_id":null,"product_id":"TEST00000000VIN01","state":"pending","code":"aqwl","expires_at":"2023-06-29T00:42:00.000Z","revoked_at":null,"borrowing_device_id":null,"key_id":null,"product_type":"vehicle","share_type":"customer","share_user_sso_id":null,"active_pubkeys":[null],"id_s":"429509621657","owner_id_s":"429511308124","share_user_id_s":"","borrowing_key_hash":null,"vin":"TEST00000000VIN01","share_link":"https://www.tesla.com/_rs/1/aqwl"}
         """;

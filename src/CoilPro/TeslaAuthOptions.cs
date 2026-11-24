@@ -18,6 +18,13 @@ public sealed class TeslaAuthOptions
     /// <summary>Requested scopes.</summary>
     public TeslaScopes Scopes { get; set; } = TeslaScopes.Openid | TeslaScopes.OfflineAccess;
 
+    /// <summary>
+    /// Sends <c>prompt_missing_scopes=true</c> with the authorization request, so Tesla asks the user again for
+    /// requested scopes they have not granted yet (e.g. energy scopes added later). Without it Tesla may silently
+    /// reuse an earlier, narrower consent. Default false.
+    /// </summary>
+    public bool PromptMissingScopes { get; set; }
+
     /// <summary>Optional explicit endpoints. When null, derived from <see cref="Region"/>.</summary>
     public TeslaEndpoints? Endpoints { get; set; }
 }

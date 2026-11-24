@@ -90,4 +90,26 @@ public class CreateAuthorizationRequestTests
 
         Assert.Throws<InvalidOperationException>(() => client.CreateAuthorizationRequest());
     }
+
+    [Fact]
+    public void CreateAuthorizationRequest_WithPromptMissingScopes_AddsParameter()
+    {
+        var options = CreateOptions(new Uri("http://localhost:8080/callback"));
+        options.PromptMissingScopes = true;
+        var client = new TeslaAuthClient(CreateHttpClientThatMustNotBeCalled(), options);
+
+        var query = UrlEncoded.Parse(client.CreateAuthorizationRequest().AuthorizationUrl.Query);
+
+        Assert.Equal("true", query["prompt_missing_scopes"]);
+    }
+
+    [Fact]
+    public void CreateAuthorizationRequest_ByDefault_OmitsPromptMissingScopes()
+    {
+        var client = new TeslaAuthClient(CreateHttpClientThatMustNotBeCalled(), CreateOptions(new Uri("http://localhost:8080/callback")));
+
+        var query = UrlEncoded.Parse(client.CreateAuthorizationRequest().AuthorizationUrl.Query);
+
+        Assert.False(query.ContainsKey("prompt_missing_scopes"));
+    }
 }

@@ -104,8 +104,18 @@ public sealed partial class CoilProClient
     }
 
     /// <inheritdoc />
-    public Task<MobileAccessStatus> GetMobileEnabledAsync(string vin, CancellationToken ct = default) =>
-        GetRequiredAsync<MobileAccessStatus>(VehiclePath(vin, "/mobile_enabled"), "mobile_enabled", ct);
+    public async Task<MobileAccessStatus> GetMobileEnabledAsync(string vin, CancellationToken ct = default)
+    {
+        // Live (2026-11-24) the endpoint answers { "response": true }; the docs show { reason, result }. Accept both.
+        var result = await _executor.SendAsync<JsonElement>(HttpMethod.Get, VehiclePath(vin, "/mobile_enabled"), null, ct).ConfigureAwait(false);
+        return result.Value.ValueKind switch
+        {
+            JsonValueKind.True => new MobileAccessStatus { Result = true },
+            JsonValueKind.False => new MobileAccessStatus { Result = false },
+            JsonValueKind.Object => result.Value.Deserialize<MobileAccessStatus>() ?? throw EmptyResponse(result.StatusCode, "mobile_enabled"),
+            _ => throw EmptyResponse(result.StatusCode, "mobile_enabled"),
+        };
+    }
 
     /// <inheritdoc />
     public Task<ResultPage<ShareInvite>> GetShareInvitesAsync(string vin, int? page = null, int? perPage = null, CancellationToken ct = default) =>

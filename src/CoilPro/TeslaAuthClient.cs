@@ -42,8 +42,8 @@ public sealed class TeslaAuthClient : ITeslaAuthClient
         var pkce = PkceCodes.Generate();
         var resolvedState = state ?? Base64Url.Encode(RandomNumberGenerator.GetBytes(16));
 
-        var query = BuildQueryString(
-        [
+        var parameters = new List<KeyValuePair<string, string>>
+        {
             new("response_type", "code"),
             new("client_id", _options.ClientId),
             new("redirect_uri", redirectUri.ToString()),
@@ -51,7 +51,13 @@ public sealed class TeslaAuthClient : ITeslaAuthClient
             new("state", resolvedState),
             new("code_challenge", pkce.Challenge),
             new("code_challenge_method", "S256"),
-        ]);
+        };
+        if (_options.PromptMissingScopes)
+        {
+            parameters.Add(new("prompt_missing_scopes", "true"));
+        }
+
+        var query = BuildQueryString(parameters);
 
         var authorizeUrl = new Uri(_endpoints.AuthorizeBaseUrl, "/oauth2/v3/authorize");
         var builder = new UriBuilder(authorizeUrl) { Query = query };
