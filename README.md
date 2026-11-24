@@ -1,6 +1,6 @@
 # Coil.NET
 
-[![CI](https://github.com/machine1986/Coil/actions/workflows/ci.yml/badge.svg)](https://github.com/machine1986/Coil/actions/workflows/ci.yml)
+[![CI](https://github.com/machine1986/Coil.NET/actions/workflows/ci.yml/badge.svg)](https://github.com/machine1986/Coil.NET/actions/workflows/ci.yml)
 [![NuGet](https://img.shields.io/nuget/vpre/Coil.svg)](https://www.nuget.org/packages/Coil/)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 

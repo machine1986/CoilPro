@@ -42,5 +42,5 @@ recorded in [`docs/api-deviations.md`](./docs/api-deviations.md).
 - Pre-2021 Model S/X and other vehicles that do not support the Vehicle Command Protocol (legacy REST commands) are not supported.
 - Public API surface may still change before 1.0.
 
-[Unreleased]: https://github.com/machine1986/Coil/compare/v0.1.0-preview.1...HEAD
-[0.1.0-preview.1]: https://github.com/machine1986/Coil/releases/tag/v0.1.0-preview.1
+[Unreleased]: https://github.com/machine1986/Coil.NET/compare/v0.1.0-preview.1...HEAD
+[0.1.0-preview.1]: https://github.com/machine1986/Coil.NET/releases/tag/v0.1.0-preview.1

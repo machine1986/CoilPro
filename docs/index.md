@@ -30,4 +30,4 @@
 | `Coil.AspNetCore` | `IServiceCollection` extensions (`AddCoilApi`, `AddCoilCommands`), OAuth callback helper |
 | `Coil.Cli` | `dotnet tool` providing the `coil` command |
 
-Source and issues: [github.com/machine1986/Coil](https://github.com/machine1986/Coil).
+Source and issues: [github.com/machine1986/Coil.NET](https://github.com/machine1986/Coil.NET).

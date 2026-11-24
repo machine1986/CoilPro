@@ -25,8 +25,8 @@
     <Company>dotnet services</Company>
     <Product>Coil.NET</Product>
     <Description>Unofficial .NET SDK for the Tesla Fleet API. Not affiliated with Tesla, Inc.</Description>
-    <PackageProjectUrl>https://github.com/machine1986/Coil</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/machine1986/Coil</RepositoryUrl>
+    <PackageProjectUrl>https://github.com/machine1986/Coil.NET</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/machine1986/Coil.NET</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageTags>tesla;fleet-api;ev;electric-vehicle;dotnet</PackageTags>
@@ -40,8 +40,8 @@
   </PropertyGroup>
 
   <!--
-    Das Root-README.md beschreibt das Gesamtvorhaben (SDK + Begleitprojekte) und taugt nicht als
-    Paketbeschreibung — deshalb ein eigenes README.nuget.md, das als README.md ins Paket wandert.
+    Das Paket bekommt ein eigenes, kompakteres README.nuget.md, das als README.md ins Paket wandert;
+    das Root-README.md richtet sich an Besucher des Repos.
     assets/icon.png ist ein Platzhalter-Mark, kein finales Logo.
   -->
   <ItemGroup>

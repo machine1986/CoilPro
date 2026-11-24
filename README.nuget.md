@@ -76,4 +76,4 @@ it is a billed call. With DI: `services.AddCoilCommands(...)` from `Coil.AspNetC
 ## Documentation
 
 Guides, the partner-onboarding walkthrough and the log of deviations between Tesla's documentation and the
-real API: **https://github.com/machine1986/Coil**
+real API: **https://github.com/machine1986/Coil.NET**

@@ -5,7 +5,7 @@ Coil.NET handles OAuth tokens and signs commands that can control a vehicle, so 
 ## Reporting a vulnerability
 
 Please report vulnerabilities **privately** through GitHub security advisories:
-**Security tab → "Report a vulnerability"** in [github.com/machine1986/Coil](https://github.com/machine1986/Coil).
+**Security tab → "Report a vulnerability"** in [github.com/machine1986/Coil.NET](https://github.com/machine1986/Coil.NET).
 Do not open a public issue for a security problem.
 
 Include the affected version, a description of the impact, and steps to reproduce.

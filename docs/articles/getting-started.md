@@ -56,7 +56,7 @@ Tesla's token endpoint requires the client secret (and an `audience`, which Coil
 
 ## 4. Try it end to end
 
-The repository ships a runnable version of the steps above at [`samples/ConsoleQuickstart`](https://github.com/machine1986/Coil/tree/main/samples/ConsoleQuickstart):
+The repository ships a runnable version of the steps above at [`samples/ConsoleQuickstart`](https://github.com/machine1986/Coil.NET/tree/main/samples/ConsoleQuickstart):
 
 ```bash
 dotnet run --project samples/ConsoleQuickstart
