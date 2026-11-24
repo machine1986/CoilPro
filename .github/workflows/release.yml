@@ -4,10 +4,11 @@
 # packs the libraries and the `coilpro` dotnet tool, and publishes them to NuGet.org.
 # MinVer reads the version from the tag (MinVerTagPrefix=v, Directory.Build.props).
 #
-# MANUAL PREP STEP (not automated by this file):
-#   Add a repository secret named NUGET_API_KEY (Settings > Secrets and
-#   variables > Actions > New repository secret) containing a NuGet.org API
-#   key scoped to the CoilPro packages before the first release tag is pushed.
+# Publishing uses NuGet Trusted Publishing (OIDC): no long-lived API key is stored
+# in the repository. nuget.org account "dotnetservices" has a trusted publishing
+# policy for repository machine1986/CoilPro, workflow file release.yml; the
+# NuGet/login action exchanges the job's GitHub OIDC token for a NuGet API key
+# that is valid for one hour.
 name: Release
 
 on:
@@ -17,6 +18,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write # GitHub OIDC token for NuGet Trusted Publishing
 
 env:
   # Directory the packed .nupkg/.snupkg files are written to.
@@ -28,13 +30,6 @@ jobs:
     # The private working repo carries the same workflow file but must never publish.
     if: github.repository == 'machine1986/CoilPro'
     runs-on: ubuntu-latest
-
-    # The `secrets` context is NOT available in a step-level `if:` (only
-    # github/needs/env/steps/... are), so the API key is mapped into the job
-    # environment here. That makes it readable both as `env.NUGET_API_KEY` in
-    # the guard condition and as `$NUGET_API_KEY` inside the push step.
-    env:
-      NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
 
     steps:
       - name: Checkout
@@ -102,18 +97,18 @@ jobs:
             ${{ env.PACKAGE_OUTPUT_DIR }}/*.nupkg
             ${{ env.PACKAGE_OUTPUT_DIR }}/*.snupkg
 
-      # Guarded so a run in a repo/fork where the secret hasn't been
-      # configured yet (see the header comment) never attempts a push with an
-      # empty API key. The key is read from the job `env` mapped above, not
-      # from `secrets` directly — see the comment there.
-      # `dotnet nuget push` accepts a glob for the package path and, for each
-      # matched .nupkg, automatically also pushes the sibling .snupkg symbol
-      # package (produced because SymbolPackageFormat=snupkg is set in
-      # Directory.Build.props) — no separate push step is needed for those.
+      # Exchange the GitHub OIDC token for a short-lived NuGet API key (valid 1 h),
+      # requested right before the push so it cannot expire in between.
+      - name: NuGet login (Trusted Publishing)
+        id: nuget-login
+        uses: NuGet/login@v1
+        with:
+          user: dotnetservices
+
+      # `dotnet nuget push` with a glob also pushes each sibling .snupkg symbol package.
       - name: Push packages to NuGet.org
-        if: ${{ env.NUGET_API_KEY != '' }}
         run: >
           dotnet nuget push "${{ env.PACKAGE_OUTPUT_DIR }}/*.nupkg"
-          --api-key "$NUGET_API_KEY"
+          --api-key "${{ steps.nuget-login.outputs.NUGET_API_KEY }}"
           --source https://api.nuget.org/v3/index.json
           --skip-duplicate
