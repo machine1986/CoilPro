@@ -9,13 +9,21 @@ public enum VehicleDataEndpoint
 {
     /// <summary>No filter — let the API return its default set.</summary>
     None = 0,
+    /// <summary>Include <c>charge_state</c> in the response.</summary>
     ChargeState = 1 << 0,
+    /// <summary>Include <c>climate_state</c> in the response.</summary>
     ClimateState = 1 << 1,
+    /// <summary>Include <c>drive_state</c> in the response.</summary>
     DriveState = 1 << 2,
+    /// <summary>Include <c>gui_settings</c> in the response.</summary>
     GuiSettings = 1 << 3,
+    /// <summary>Include <c>vehicle_state</c> in the response.</summary>
     VehicleState = 1 << 4,
+    /// <summary>Include <c>vehicle_config</c> in the response.</summary>
     VehicleConfig = 1 << 5,
+    /// <summary>Include <c>location_data</c> in the response.</summary>
     LocationData = 1 << 6,
+    /// <summary>Include <c>closures_state</c> in the response.</summary>
     ClosuresState = 1 << 7,
 }
 

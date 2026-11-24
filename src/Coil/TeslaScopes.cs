@@ -6,15 +6,25 @@ namespace Coil;
 [Flags]
 public enum TeslaScopes
 {
+    /// <summary>No scopes.</summary>
     None = 0,
+    /// <summary><c>openid</c>: identify the user.</summary>
     Openid = 1 << 0,
+    /// <summary><c>offline_access</c>: issue refresh tokens.</summary>
     OfflineAccess = 1 << 1,
+    /// <summary><c>user_data</c>: account and profile information.</summary>
     UserData = 1 << 2,
+    /// <summary><c>vehicle_device_data</c>: read vehicle information and data.</summary>
     VehicleDeviceData = 1 << 3,
+    /// <summary><c>vehicle_location</c>: read vehicle location.</summary>
     VehicleLocation = 1 << 4,
+    /// <summary><c>vehicle_cmds</c>: send vehicle commands.</summary>
     VehicleCmds = 1 << 5,
+    /// <summary><c>vehicle_charging_cmds</c>: send vehicle charging commands.</summary>
     VehicleChargingCmds = 1 << 6,
+    /// <summary><c>energy_device_data</c>: read energy product data.</summary>
     EnergyDeviceData = 1 << 7,
+    /// <summary><c>energy_cmds</c>: send energy product commands.</summary>
     EnergyCmds = 1 << 8,
 }
 
