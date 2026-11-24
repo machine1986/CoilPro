@@ -78,4 +78,4 @@ it is a billed call. With DI: `services.AddCoilProProCommands(...)` from `CoilPr
 ## Documentation
 
 Guides, the partner-onboarding walkthrough and the log of deviations between Tesla's documentation and the
-real API: **https://github.com/machine1986/CoilPro**
+real API: **https://machine1986.github.io/CoilPro/** (source: https://github.com/machine1986/CoilPro)

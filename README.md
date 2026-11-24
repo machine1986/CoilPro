@@ -130,6 +130,8 @@ is a billed call. In ASP.NET Core use `services.AddCoilProProApi(...)` and `serv
 
 ## Documentation
 
+Full documentation site with API reference: **https://machine1986.github.io/CoilPro/**
+
 - [Getting Started](./docs/articles/getting-started.md)
 - [Partner Onboarding](./docs/articles/partner-onboarding.md)
 - [Reading Vehicle Data](./docs/articles/reading-vehicle-data.md)
