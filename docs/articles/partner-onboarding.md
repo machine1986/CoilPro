@@ -2,19 +2,19 @@
 
 This is the part of integrating with the Tesla Fleet API that trips up almost every third-party developer: registering an application, hosting a public key, and pairing a Virtual Key in the vehicle before a single signed command can be sent. Coil.NET's goal is to make this a guided, well-documented process instead of a scavenger hunt through forum threads.
 
-Steps 1–5 are implemented and usable today. Steps 6–7 (Virtual Key pairing and signed commands) ship with `Coil.Commands` in M3. All endpoint paths and requirements below were verified against [developer.tesla.com](https://developer.tesla.com) and [`teslamotors/vehicle-command`](https://github.com/teslamotors/vehicle-command) on 2026-07-28; confirmed deviations from the planning spec are recorded in [`docs/api-deviations.md`](../api-deviations.md). Tesla changes these without much notice — re-verify if something below stops matching reality.
+All steps are implemented. Steps 1–5 and the signed-command path were verified live on the EU region with one Model Y (EU registration, partner-token scopes, login, `fleet_status`, `flash`, `charge-limit`, `lock`/`unlock`); the North America region has not been exercised. All endpoint paths and requirements below were verified against [developer.tesla.com](https://developer.tesla.com) and [`teslamotors/vehicle-command`](https://github.com/teslamotors/vehicle-command) on 2026-07-28; confirmed deviations from the planning spec are recorded in [`docs/api-deviations.md`](../api-deviations.md). Tesla changes these without much notice — re-verify if something below stops matching reality.
 
 ## Overview
 
 | # | Step | Needed for | Status |
 |---|---|---|---|
-| 1 | Register a Tesla developer application | OAuth login, partner token | Available — M1 |
+| 1 | Register a Tesla developer application | OAuth login, partner token | Available |
 | 2 | Generate an EC P-256 keypair | Domain verification, signing commands | Available — `coil keys generate` |
 | 3 | Host the public key at `/.well-known/appspecific/com.tesla.3p.public-key.pem` | Domain verification | Available — static hosting |
 | 4 | Register your domain with Tesla | Domain verification | Available — `coil partner register` |
 | 5 | Verify what Tesla stored | Catching a bad registration early | Available — `coil partner public-key` |
-| 6 | Pair a Virtual Key in the vehicle (deep link) | Sending signed commands | M3 |
-| 7 | Send signed commands (`Coil.Commands`) | Vehicle Command Protocol | M3 |
+| 6 | Pair a Virtual Key in the vehicle (deep link) | Sending signed commands | Manual step in the Tesla app |
+| 7 | Send signed commands (`Coil.Commands`) | Vehicle Command Protocol | Available — `Coil.Commands`, `coil cmd` |
 
 ## The short version
 
@@ -23,8 +23,9 @@ coil keys generate
 # publish keys/public-key.pem at https://<domain>/.well-known/appspecific/com.tesla.3p.public-key.pem
 coil partner register   --domain <domain> --client-id <id> --client-secret <secret> --region eu
 coil partner public-key --domain <domain> --client-id <id> --client-secret <secret> --region eu
-coil login --region eu
+coil login --client-id <id> --client-secret <secret> --region eu --port 8080
 coil vehicles
+coil cmd <VIN> flash --wake   # needs the virtual key from step 6
 ```
 
 ## Step 1 — Register a Tesla developer application
@@ -121,13 +122,13 @@ Tesla returns the registered key as a hex-encoded uncompressed EC point (`04…`
 
 If this prints "no public key on file", the registration in step 4 did not take effect for this region.
 
-## Step 6 — Pair a Virtual Key in the vehicle (M3)
+## Step 6 — Pair a Virtual Key in the vehicle
 
-The vehicle owner opens a deep link, `https://tesla.com/_ak/<your-domain>`, in the Tesla mobile app and confirms pairing. Only after this step can signed commands addressed to that vehicle succeed.
+The vehicle owner opens a deep link, `https://tesla.com/_ak/<your-domain>`, in the Tesla mobile app and confirms pairing. Only after this step can signed commands addressed to that vehicle succeed. A cheap check is `POST /api/1/vehicles/fleet_status` (`key_paired_vins` / `unpaired_vins`), see [API deviations](../api-deviations.md).
 
-## Step 7 — Send signed commands (M3)
+## Step 7 — Send signed commands
 
-Once paired, `Coil.Commands` handles the session handshake (ECDH-derived shared secret), Protobuf envelope construction, HMAC-SHA256 tagging, and anti-replay counters behind a simple call shape, e.g. `await client.Commands.SetChargeLimit(vin, 80);`. The planned `coil cmd <vin> charge-limit 80` CLI command is a smoke-test wrapper around the same API.
+Once paired, `Coil.Commands` handles the session handshake (ECDH-derived shared secret), Protobuf envelope construction, HMAC-SHA256 tagging, and anti-replay counters behind a simple call shape, e.g. `await commands.SetChargeLimitAsync(vin, 80);` (with the 17-character VIN). `coil cmd <VIN> charge-limit 80` is a smoke-test wrapper around the same API. See [Signed Vehicle Commands](commands.md).
 
 ## Troubleshooting
 
@@ -137,22 +138,24 @@ Once paired, `Coil.Commands` handles the session handshake (ECDH-derived shared 
 | Registration fails mentioning the domain | The domain does not match the root domain of an Allowed Origin on developer.tesla.com. |
 | Region errors on calls that look correctly routed | You registered in one region only. Register in the other region too (see step 4). |
 | `coil partner public-key` warns about a mismatch | The hosted PEM is not the public half of the private key in `~/.coil/keys/`. Re-publish and re-register. |
+| `coil login` fails with "redirect_uri ... not registered" | The redirect URI must be registered on developer.tesla.com exactly as used, and must use `localhost` (not `127.0.0.1`). Use `--port <n>` to get a stable URI such as `http://localhost:8080/callback`. |
+| `coil partner public-key` answers `403 Unauthorized missing scopes` | The partner token needs more than `openid offline_access`; the CLI requests the right set, library users must set `TeslaAuthOptions.Scopes` (see [API deviations](../api-deviations.md)). |
 | Signing fails later despite a successful registration | The key may not be P-256. Check with `openssl pkey -in private-key.pem -noout -text` — it must report `NIST CURVE: P-256`. |
 
 ## The `coil` CLI
 
-`tools/Coil.Cli` (installable as `dotnet tool install -g coil`) covers the flow above:
+`tools/Coil.Cli` (installed with `dotnet tool install --global Coil.Cli`; the command is `coil`) covers the flow above:
 
 ```bash
 coil keys generate               # step 2 — keypair + ready-to-host PEM
 coil keys show                   # print the public key (PEM + hex) for publishing
 coil partner register            # step 4 — domain/public-key registration
 coil partner public-key          # step 5 — verify what Tesla stored
-coil login                       # OAuth flow via a local loopback redirect
+coil login                       # OAuth flow via a local loopback redirect (http://localhost:<port>/callback)
 coil vehicles                    # smoke test: list vehicles on the account
 coil data <vin>                  # smoke test: read a vehicle data snapshot
 coil wake <vin>                  # smoke test: wake a vehicle
-coil cmd <vin> charge-limit 80   # smoke test: send a signed command (M3)
+coil cmd <vin> charge-limit 80   # smoke test: send a signed command
 ```
 
 Check the CLI's own `--help` output for what's implemented in your installed version.

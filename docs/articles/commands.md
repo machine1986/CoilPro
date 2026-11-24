@@ -4,6 +4,8 @@
 
 > **Unofficial — not affiliated with Tesla, Inc.**
 
+> **Preview.** Verified live on one EU Model Y (firmware 2026.38.6): `flash`, `charge-limit` (vehicle refusal `already_set`), `lock` and `unlock`. All other commands, other regions and other vehicles are covered by unit and end-to-end tests only. See [API deviations](../api-deviations.md) and the [protocol notes](../m3-command-protocol.md).
+
 ## Prerequisites
 
 Commands only work when all of these are in place:

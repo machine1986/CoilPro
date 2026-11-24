@@ -1,11 +1,13 @@
 # Getting Started
 
-Five minutes from an empty console project to a printed Tesla authorization URL and an exchanged access token. No Tesla account required for the first part — you only need one to actually log in.
+From an empty console project to a printed Tesla authorization URL and an exchanged access token. No Tesla account is required to print the URL — you only need one to actually log in.
+
+> **Preview.** Coil.NET `0.1.0-preview` was verified live against the EU region with one vehicle. Behaviour in other regions or on other vehicle models is untested.
 
 ## Prerequisites
 
 - .NET SDK 8 or 10 installed (`dotnet --version`)
-- Optional, for a real login: a Tesla developer application, registered at the [Tesla developer dashboard](https://developer.tesla.com/en_US/dashboard) (Client ID, and a Client Secret if you registered a confidential client)
+- Optional, for a real login: a Tesla developer application, registered at the [Tesla developer dashboard](https://developer.tesla.com/en_US/dashboard) (Client ID and Client Secret). Add your redirect URI there — Tesla only accepts `http://localhost:<port>/...` for local development, **not** `127.0.0.1`.
 
 > Registering an application and completing partner/domain registration is a separate, more involved process — see [Partner Onboarding](partner-onboarding.md). You don't need any of that to try the flow below with a placeholder client id.
 
@@ -38,7 +40,7 @@ var request = authClient.CreateAuthorizationRequest();
 Console.WriteLine($"Open this URL and log in: {request.AuthorizationUrl}");
 ```
 
-Open the printed URL in a browser, log in with your Tesla account, and grant the requested scopes. Tesla redirects back to your `RedirectUri` with `?code=...&state=...`.
+The URL points at Tesla's interactive authorize page (`https://auth.tesla.com/oauth2/v3/authorize`); only the token endpoint lives on the `fleet-auth` host (see [API deviations](../api-deviations.md)). Open the printed URL in a browser, log in with your Tesla account, and grant the requested scopes. Tesla redirects back to your `RedirectUri` with `?code=...&state=...`.
 
 ## 3. Exchange the code for tokens
 
@@ -50,7 +52,7 @@ var tokens = await authClient.ExchangeCodeAsync(code, request.Pkce.Verifier);
 Console.WriteLine($"Access token expires at {tokens.ExpiresAt:u}");
 ```
 
-`tokens.RefreshToken` is populated when `TeslaScopes.OfflineAccess` was requested (as above). Store it with an `ITokenStore` implementation — `InMemoryTokenStore` is a good default for quick experiments — and call `authClient.RefreshAsync(refreshToken)` once the access token expires, instead of repeating steps 2-3.
+Tesla's token endpoint requires the client secret (and an `audience`, which Coil sets for you) for the code exchange, so set `TeslaAuthOptions.ClientSecret` for a confidential client. `tokens.RefreshToken` is populated when `TeslaScopes.OfflineAccess` was requested (as above). Store it with an `ITokenStore` implementation — `InMemoryTokenStore` is a good default for quick experiments — and call `authClient.RefreshAsync(refreshToken)` once the access token expires, instead of repeating steps 2-3.
 
 ## 4. Try it end to end
 
@@ -60,7 +62,7 @@ The repository ships a runnable version of the steps above at [`samples/ConsoleQ
 dotnet run --project samples/ConsoleQuickstart
 ```
 
-It builds and starts without any environment variables set — it falls back to placeholders and shows you the authorization URL shape. Set `TESLA_CLIENT_ID` (and optionally `TESLA_CLIENT_SECRET`, `TESLA_REDIRECT_URI`, `TESLA_REGION`) to run a real login end to end.
+See the sample's own README/source for the environment variables it reads.
 
 ## Using dependency injection (ASP.NET Core)
 
@@ -82,4 +84,6 @@ This wires up `ITeslaAuthClient` through `IHttpClientFactory` so you get pooled 
 ## Next steps
 
 - Shipping to real users? Walk through [Partner Onboarding](partner-onboarding.md) — keypair generation, `/.well-known` hosting, and Tesla partner registration.
-- The `coil` CLI tool (`tools/Coil.Cli`) is being built out to automate parts of onboarding and to run quick smoke tests (`coil login`, `coil vehicles`, `coil wake <vin>`) — see Partner Onboarding for its planned command surface.
+- Read vehicle data: [Reading Vehicle Data](reading-vehicle-data.md).
+- Send signed commands: [Signed Vehicle Commands](commands.md).
+- The `coil` CLI (`dotnet tool install --global Coil.Cli`) automates onboarding (`coil keys`, `coil partner`), login and smoke tests (`coil login`, `coil vehicles`, `coil data`, `coil wake`, `coil cmd`) — see [Partner Onboarding](partner-onboarding.md).

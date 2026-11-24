@@ -1,28 +1,33 @@
 # Coil.NET
 
-**Coil.NET** is an unofficial, open-source .NET SDK for the [Tesla Fleet API](https://developer.tesla.com/docs/fleet-api). It targets `net8.0` and `net10.0`, ships under the MIT license, and focuses on two things the .NET ecosystem has been missing:
-
-- A **native Vehicle Command Protocol** implementation (signed commands: ECDSA P-256, ECDH, HMAC-SHA256, Protobuf envelope) in pure C# — no dependency on Tesla's Go-based `tesla-http-proxy`.
-- A well-documented, low-friction **OAuth + partner onboarding** path — the step most third-party integrations get stuck on.
+**Coil.NET** is an unofficial, open-source .NET SDK for the [Tesla Fleet API](https://developer.tesla.com/docs/fleet-api). It targets `net8.0` and `net10.0` and is MIT-licensed.
 
 > **Unofficial — not affiliated with, endorsed by, or sponsored by Tesla, Inc.** "Tesla" is used only to describe API compatibility.
 
+> **Preview.** `0.1.0-preview` — verified live against the EU region with one Model Y. Expect API changes before 1.0.
+
+## What it does
+
+- **Signed vehicle commands** via the native Vehicle Command Protocol (ECDSA P-256, ECDH, HMAC-SHA256 / AES-GCM, Protobuf) in pure C# — no Go-based `tesla-http-proxy` needed.
+- **OAuth (authorization code + PKCE, client credentials, refresh)** and a guided **partner onboarding** path: key generation, public-key hosting, registration.
+- **Read endpoints** (`ICoilClient`): vehicle list, `vehicle_data` with cost-conscious segment filters, wake-up, charging history, rate-limit tracking.
+- **ASP.NET Core / DI** integration and a `coil` command-line tool for onboarding and smoke tests.
+
 ## Where to start
 
-- New to Coil.NET? Read [Getting Started](articles/getting-started.md) — a five-minute quickstart that gets you from `dotnet add package Coil` to a printed authorization URL and an exchanged token.
-- Building an integration you'll ship to real users? Read [Partner Onboarding](articles/partner-onboarding.md) for the full picture: keypair generation, `/.well-known` hosting, and Tesla partner registration.
-- Looking for a specific type or member? See the [API Reference](api/index.md).
+- [Getting Started](articles/getting-started.md) — install, build the authorization URL, exchange the code.
+- [Partner Onboarding](articles/partner-onboarding.md) — the one-time setup Tesla requires before any call works.
+- [Reading Vehicle Data](articles/reading-vehicle-data.md) and [Signed Vehicle Commands](articles/commands.md).
+- [API Reference](api/index.md) — generated from the XML documentation.
+- [API Deviations](api-deviations.md) — where Tesla's real API differed from its documentation or from our plan, with live-verification notes.
 
 ## Packages
 
 | Package | Purpose |
 |---|---|
-| `Coil` | Core package: OAuth flows, HTTP layer, vehicle endpoints |
-| `Coil.Commands` | Vehicle Command Protocol (signed commands) — the USP, ships in M3 |
-| `Coil.AspNetCore` | `IServiceCollection` DI extensions, OAuth callback helpers |
+| `Coil` | Core: OAuth, HTTP layer, partner onboarding, vehicle read endpoints, models |
+| `Coil.Commands` | Vehicle Command Protocol (signed commands) |
+| `Coil.AspNetCore` | `IServiceCollection` extensions (`AddCoilApi`, `AddCoilCommands`), OAuth callback helper |
+| `Coil.Cli` | `dotnet tool` providing the `coil` command |
 
-The `coil` `dotnet tool` (source: `tools/Coil.Cli`) wraps common onboarding and smoke-test tasks — see [Partner Onboarding](articles/partner-onboarding.md) for the commands it will expose as they ship.
-
-## Project status
-
-Coil.NET is under active milestone-based development; see the [technical specification](https://github.com/machine1986/Coil/blob/main/doc/11%20SDK%20%E2%80%93%20Technische%20Spezifikation.md) and [`docs/api-deviations.md`](api-deviations.md) for where the implementation has diverged from Tesla's published API after verification.
+Source and issues: [github.com/machine1986/Coil](https://github.com/machine1986/Coil).

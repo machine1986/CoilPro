@@ -3,3 +3,7 @@
 - name: API Reference
   href: api/
   homepage: api/index.md
+- name: API Deviations
+  href: api-deviations.md
+- name: Command Protocol Notes
+  href: m3-command-protocol.md
