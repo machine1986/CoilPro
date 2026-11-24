@@ -17,9 +17,14 @@ internal sealed record LoopbackCallbackResult
 }
 
 /// <summary>
-/// A minimal, single-use <c>http://127.0.0.1:&lt;port&gt;/callback</c> listener used to receive the OAuth
+/// A minimal, single-use <c>http://localhost:&lt;port&gt;/callback</c> listener used to receive the OAuth
 /// authorization-code redirect for <c>coil login</c> (RFC 8252 "loopback interface redirection").
 /// </summary>
+/// <remarks>
+/// <c>localhost</c>, not <c>127.0.0.1</c>: RFC 8252 prefers the IP literal, but developer.tesla.com only
+/// accepts <c>localhost</c> redirect URIs, and Tesla matches the URI exactly. The listener prefix has to use
+/// the same host name, because <see cref="HttpListener"/> routes by the request's <c>Host</c> header.
+/// </remarks>
 internal sealed class LoopbackListener : IDisposable
 {
     private HttpListener? _listener;
@@ -31,10 +36,10 @@ internal sealed class LoopbackListener : IDisposable
         var port = preferredPort > 0 ? preferredPort : GetFreeTcpPort();
 
         _listener = new HttpListener();
-        _listener.Prefixes.Add($"http://127.0.0.1:{port}/");
+        _listener.Prefixes.Add($"http://localhost:{port}/");
         _listener.Start();
 
-        return new Uri($"http://127.0.0.1:{port}/callback");
+        return new Uri($"http://localhost:{port}/callback");
     }
 
     /// <summary>

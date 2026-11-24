@@ -47,8 +47,10 @@ Alternativ direkt: `export COIL_CLIENT_ID=...` und ` export COIL_CLIENT_SECRET=.
 Auf developer.tesla.com in der App-Konfiguration unter **Allowed Redirect URIs** exakt eintragen (Tesla matcht exakt, fester Port nötig):
 
 ```
-http://127.0.0.1:8080/callback
+http://localhost:8080/callback
 ```
+
+`localhost`, nicht `127.0.0.1` — developer.tesla.com akzeptiert nur `localhost` (Stand 2026-11-24). Die CLI lauscht deshalb auf `localhost`.
 
 ## 3. Login
 
