@@ -24,6 +24,9 @@ env:
 
 jobs:
   pack-and-publish:
+    # Publish only from the public SDK repository, so SourceLink and package metadata point at it.
+    # The private working repo carries the same workflow file but must never publish.
+    if: github.repository == 'machine1986/Coil.NET'
     runs-on: ubuntu-latest
 
     # The `secrets` context is NOT available in a step-level `if:` (only
