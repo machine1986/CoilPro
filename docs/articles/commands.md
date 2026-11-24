@@ -98,7 +98,7 @@ By default a command to a sleeping vehicle throws `TeslaVehicleAsleepException` 
 | Vehicle asleep / offline | `TeslaVehicleAsleepException` (HTTP 503, or 408 "vehicle is offline") | Call `ICoilClient.WakeUpAsync`, run `coil wake <VIN>`, or enable `AutoWake`. |
 | Vehicle does not support the protocol | `TeslaCommandException` with `StatusCode = 422` | Pre-2021 Model S/X and similar vehicles use the legacy REST commands, which Coil does not implement. |
 | Protocol fault from the vehicle | `TeslaCommandException` with `Fault` set | See `TeslaMessageFault`; retryable faults are already retried. |
-| Missing scope / token | `TeslaCommandException` / `TeslaApiException` with HTTP 401/403 | Log in again with `vehicle_cmds` and `vehicle_charging_cmds`. |
+| Missing scope / token | `TeslaCommandException` with `StatusCode` 401 or 403 | Log in again with `vehicle_cmds` and `vehicle_charging_cmds`. Tesla answers a missing scope with `403 Unauthorized missing scopes` (observed on other Fleet API endpoints; not yet observed on `signed_command`). |
 | Vehicle refuses | `CommandResult.Success == false` | Read `Reason`; this is not an error. |
 
 ## CLI

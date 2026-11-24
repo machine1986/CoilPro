@@ -17,3 +17,6 @@ TestResults/
 .env
 .env.*
 *.secret
+
+# Claude Code agent worktrees
+.claude/worktrees/
