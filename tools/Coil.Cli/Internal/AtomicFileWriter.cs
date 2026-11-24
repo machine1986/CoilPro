@@ -3,12 +3,23 @@ namespace Coil.Cli.Internal;
 /// <summary>Writes text files atomically (temp file + rename) so a crash never leaves a half-written file.</summary>
 internal static class AtomicFileWriter
 {
+    /// <summary>Owner read/write only (<c>0600</c>) — the default, for secrets such as tokens and private keys.</summary>
+    public const UnixFileMode OwnerOnly = UnixFileMode.UserRead | UnixFileMode.UserWrite;
+
+    /// <summary>
+    /// Owner read/write, everyone else read (<c>0644</c>) — for files meant to be published, such as the
+    /// public key. Tools like <c>sftp put</c> carry the local mode over to the server, and a <c>0600</c> file
+    /// there makes the web server answer <c>403 Forbidden</c>.
+    /// </summary>
+    public const UnixFileMode WorldReadable = OwnerOnly | UnixFileMode.GroupRead | UnixFileMode.OtherRead;
+
     /// <summary>
     /// Writes <paramref name="contents"/> to <paramref name="path"/> via a temp file in the same directory,
     /// then an atomic rename. On non-Windows platforms the temp file (and thus the final file, since rename
-    /// preserves it) is restricted to the current user before the rename.
+    /// preserves it) gets <paramref name="mode"/> before the rename — <see cref="OwnerOnly"/> unless the
+    /// caller says otherwise.
     /// </summary>
-    public static async Task WriteAsync(string path, string contents, CancellationToken ct = default)
+    public static async Task WriteAsync(string path, string contents, CancellationToken ct = default, UnixFileMode mode = OwnerOnly)
     {
         var dir = Path.GetDirectoryName(path);
         if (!string.IsNullOrEmpty(dir))
@@ -28,7 +39,7 @@ internal static class AtomicFileWriter
             {
                 try
                 {
-                    File.SetUnixFileMode(tempPath, UnixFileMode.UserRead | UnixFileMode.UserWrite);
+                    File.SetUnixFileMode(tempPath, mode);
                 }
                 catch
                 {

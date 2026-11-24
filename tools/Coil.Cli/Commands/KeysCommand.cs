@@ -83,7 +83,8 @@ internal static class KeysCommand
         {
             Directory.CreateDirectory(Path.GetDirectoryName(privatePath)!);
             await AtomicFileWriter.WriteAsync(privatePath, keyPair.ExportPrivateKeyPem(), ct).ConfigureAwait(false);
-            await AtomicFileWriter.WriteAsync(publicPath, keyPair.ExportPublicKeyPem(), ct).ConfigureAwait(false);
+            // Public by design and meant to be uploaded — 0644, so `sftp put` doesn't carry 0600 onto the web server.
+            await AtomicFileWriter.WriteAsync(publicPath, keyPair.ExportPublicKeyPem(), ct, AtomicFileWriter.WorldReadable).ConfigureAwait(false);
         }
         catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
         {
