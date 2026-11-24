@@ -117,6 +117,266 @@ public sealed class CoilProCommands : ICoilProCommands
     public Task<CommandResult> SetChargingAmpsAsync(string vin, int amps, CancellationToken ct = default) =>
         ExecuteAsync(vin, () => CommandPayloads.SetChargingAmps(amps), ct);
 
+    /// <inheritdoc />
+    public Task<CommandResult> RemoteStartDriveAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.RemoteStartDrive, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> OpenFrunkAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.OpenFrunk, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> ActuateRearTrunkAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.ActuateRearTrunk, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> CloseRearTrunkAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.CloseRearTrunk, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> AutoSecureModelXAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.AutoSecureModelX, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> OpenTonneauAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.OpenTonneau, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> CloseTonneauAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.CloseTonneau, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> StopTonneauAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.StopTonneau, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> CloseChargePortAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.CloseChargePort, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> ChargeStandardRangeAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.ChargeStandardRange, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> ChargeMaxRangeAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.ChargeMaxRange, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetScheduledChargingAsync(string vin, bool enabled, TimeOnly time, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetScheduledCharging(enabled, time), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetScheduledDepartureAsync(string vin, ScheduledDeparture departure, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetScheduledDeparture(departure), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> ClearScheduledDepartureAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.ClearScheduledDeparture, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> AddChargeScheduleAsync(string vin, ChargeSchedule schedule, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.AddChargeSchedule(schedule), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> RemoveChargeScheduleAsync(string vin, ulong scheduleId, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.RemoveChargeSchedule(scheduleId), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> RemoveChargeSchedulesAsync(string vin, ScheduleLocations locations, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.RemoveChargeSchedules(locations), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> AddPreconditionScheduleAsync(string vin, PreconditionSchedule schedule, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.AddPreconditionSchedule(schedule), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> RemovePreconditionScheduleAsync(string vin, ulong scheduleId, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.RemovePreconditionSchedule(scheduleId), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> RemovePreconditionSchedulesAsync(string vin, ScheduleLocations locations, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.RemovePreconditionSchedules(locations), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetLowPowerModeAsync(string vin, bool enabled, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetLowPowerMode(enabled), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetKeepAccessoryPowerModeAsync(string vin, bool enabled, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetKeepAccessoryPowerMode(enabled), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetPreconditioningMaxAsync(string vin, bool on, bool manualOverride = false, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetPreconditioningMax(on, manualOverride), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetBioweaponModeAsync(string vin, bool on, bool manualOverride = false, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetBioweaponMode(on, manualOverride), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetCabinOverheatProtectionAsync(string vin, bool on, bool fanOnly = false, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetCabinOverheatProtection(on, fanOnly), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetCabinOverheatProtectionTemperatureAsync(string vin, CabinOverheatTemperature temperature, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetCabinOverheatProtectionTemperature(temperature), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetClimateKeeperModeAsync(string vin, ClimateKeeperMode mode, bool manualOverride = false, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetClimateKeeperMode(mode, manualOverride), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetSeatHeaterAsync(string vin, SeatPosition seat, SeatHeaterLevel level, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetSeatHeater(seat, level), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetSeatCoolerAsync(string vin, FrontSeat seat, SeatCoolerLevel level, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetSeatCooler(seat, level), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetAutoSeatClimateAsync(string vin, FrontSeat seat, bool on, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetAutoSeatClimate(seat, on), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetSteeringWheelHeaterAsync(string vin, bool on, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetSteeringWheelHeater(on), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> VentWindowsAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.VentWindows, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> CloseWindowsAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.CloseWindows, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetVolumeAsync(string vin, float volume, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetVolume(volume), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> VolumeUpAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.VolumeUp, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> VolumeDownAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.VolumeDown, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> NextTrackAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.NextTrack, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> PreviousTrackAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.PreviousTrack, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> NextFavoriteAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.NextFavorite, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> PreviousFavoriteAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.PreviousFavorite, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> TogglePlaybackAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.TogglePlayback, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetSentryModeAsync(string vin, bool on, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetSentryMode(on), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> EnableValetModeAsync(string vin, string pin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.EnableValetMode(pin), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> DisableValetModeAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.DisableValetMode, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> ResetValetPinAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.ResetValetPin, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetPinToDriveAsync(string vin, bool on, string? pin = null, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetPinToDrive(on, pin), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> ClearPinToDriveAdminAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.ClearPinToDriveAdmin, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> ResetPinToDriveAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.ResetPinToDrive, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> ActivateSpeedLimitAsync(string vin, string pin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.ActivateSpeedLimit(pin), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> DeactivateSpeedLimitAsync(string vin, string pin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.DeactivateSpeedLimit(pin), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> ClearSpeedLimitPinAsync(string vin, string pin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.ClearSpeedLimitPin(pin), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> ClearSpeedLimitPinAdminAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.ClearSpeedLimitPinAdmin, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetSpeedLimitAsync(string vin, double limitMph, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetSpeedLimit(limitMph), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> ActivateParentalControlsAsync(string vin, string pin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.ActivateParentalControls(pin), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> DeactivateParentalControlsAsync(string vin, string pin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.DeactivateParentalControls(pin), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetParentalControlsSettingAsync(string vin, ParentalControlsSetting setting, bool enable, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetParentalControlsSetting(setting, enable), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetParentalControlsSpeedLimitAsync(string vin, double limitMph, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetParentalControlsSpeedLimit(limitMph), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> ClearParentalControlsPinAdminAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.ClearParentalControlsPinAdmin, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetGuestModeAsync(string vin, bool on, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetGuestMode(on), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> EraseUserDataAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.EraseUserData, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> ScheduleSoftwareUpdateAsync(string vin, TimeSpan delay, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.ScheduleSoftwareUpdate(delay), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> CancelSoftwareUpdateAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.CancelSoftwareUpdate, ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> TriggerHomelinkAsync(string vin, double latitude, double longitude, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.TriggerHomelink(latitude, longitude), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> SetVehicleNameAsync(string vin, string name, CancellationToken ct = default) =>
+        ExecuteAsync(vin, () => CommandPayloads.SetVehicleName(name), ct);
+
+    /// <inheritdoc />
+    public Task<CommandResult> PingAsync(string vin, CancellationToken ct = default) =>
+        ExecuteAsync(vin, CommandPayloads.Ping, ct);
+
     /// <summary>
     /// Orchestration: validate VIN, build the payload (argument errors surface synchronously-ish before any I/O),
     /// serialize per VIN, get/establish the session for the command's domain, sign, send, open the reply,

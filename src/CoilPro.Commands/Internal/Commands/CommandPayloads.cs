@@ -18,7 +18,7 @@ internal sealed record VehicleCommand(string Name, Domain Domain, byte[] Payload
 /// Builds the protobuf payload for each supported command. Field-for-field equivalent to the Go reference
 /// (message paths in <c>docs/m3-command-protocol.md</c> §2).
 /// </summary>
-internal static class CommandPayloads
+internal static partial class CommandPayloads
 {
     /// <summary>Locks the vehicle (<c>RKE_ACTION_LOCK</c>).</summary>
     public static VehicleCommand Lock() => Rke("lock", Vc.RKEAction_E.RkeActionLock);

@@ -14,7 +14,7 @@ namespace CoilPro;
 /// and caches it in memory until shortly before it expires. That token's <c>audience</c> is derived
 /// from the auth client's region, which must match this client's base address.
 /// </remarks>
-public sealed class TeslaPartnerClient : ITeslaPartnerClient
+public sealed partial class TeslaPartnerClient : ITeslaPartnerClient
 {
     private static readonly JsonSerializerOptions JsonOptions = new();
 

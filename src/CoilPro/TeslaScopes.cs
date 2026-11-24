@@ -26,6 +26,12 @@ public enum TeslaScopes
     EnergyDeviceData = 1 << 7,
     /// <summary><c>energy_cmds</c>: send energy product commands.</summary>
     EnergyCmds = 1 << 8,
+    /// <summary><c>vehicle_specs</c>: vehicle specifications by VIN (partner token only).</summary>
+    VehicleSpecs = 1 << 9,
+    /// <summary><c>vehicle_pricing_info</c>: model configuration prices (partner token only).</summary>
+    VehiclePricingInfo = 1 << 10,
+    /// <summary><c>enterprise_management</c>: business vehicle roles and payers.</summary>
+    EnterpriseManagement = 1 << 11,
 }
 
 /// <summary>Helpers for <see cref="TeslaScopes"/>.</summary>
@@ -48,6 +54,9 @@ public static class TeslaScopesExtensions
         if (scopes.HasFlag(TeslaScopes.VehicleChargingCmds)) parts.Add("vehicle_charging_cmds");
         if (scopes.HasFlag(TeslaScopes.EnergyDeviceData)) parts.Add("energy_device_data");
         if (scopes.HasFlag(TeslaScopes.EnergyCmds)) parts.Add("energy_cmds");
+        if (scopes.HasFlag(TeslaScopes.VehicleSpecs)) parts.Add("vehicle_specs");
+        if (scopes.HasFlag(TeslaScopes.VehiclePricingInfo)) parts.Add("vehicle_pricing_info");
+        if (scopes.HasFlag(TeslaScopes.EnterpriseManagement)) parts.Add("enterprise_management");
 
         return string.Join(' ', parts);
     }

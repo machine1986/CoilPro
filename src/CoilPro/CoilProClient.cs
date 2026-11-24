@@ -6,7 +6,7 @@ namespace CoilPro;
 /// Default <see cref="ICoilProClient"/> backed by an <see cref="HttpClient"/> whose
 /// <see cref="HttpClient.BaseAddress"/> is the Fleet API host for the account's region.
 /// </summary>
-public sealed class CoilProClient : ICoilProClient
+public sealed partial class CoilProClient : ICoilProClient
 {
     private readonly FleetApiExecutor _executor;
 
@@ -63,13 +63,32 @@ public sealed class CoilProClient : ICoilProClient
     }
 
     /// <inheritdoc />
-    public async Task<ChargingHistoryPage> GetChargingHistoryAsync(CancellationToken ct = default)
+    public async Task<ChargingHistoryPage> GetChargingHistoryAsync(ChargingHistoryQuery? query = null, CancellationToken ct = default)
     {
-        // PROVISIONAL: path, query parameters and response envelope for the charging-history endpoint
-        // are not confirmed against current developer.tesla.com docs. Verify before release and record
-        // any deviation in docs/api-deviations.md.
+        var parameters = new List<string>();
+        if (query is not null)
+        {
+            Add("vin", query.Vin);
+            Add("startTime", query.StartTime?.ToString("yyyy-MM-ddTHH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture));
+            Add("endTime", query.EndTime?.ToString("yyyy-MM-ddTHH:mm:sszzz", System.Globalization.CultureInfo.InvariantCulture));
+            Add("pageNo", query.PageNumber?.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            Add("pageSize", query.PageSize?.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            Add("sortBy", query.SortBy);
+            Add("sortOrder", query.Ascending is null ? null : query.Ascending.Value ? "ASC" : "DESC");
+        }
+
+        var path = parameters.Count == 0 ? "api/1/dx/charging/history" : "api/1/dx/charging/history?" + string.Join("&", parameters);
+
         // No { "response": ... } envelope on this endpoint (confirmed live 2026-11-24).
-        var result = await _executor.SendAsync<ChargingHistoryPage>(HttpMethod.Get, "api/1/dx/charging/history", null, ct, unwrapEnvelope: false).ConfigureAwait(false);
+        var result = await _executor.SendAsync<ChargingHistoryPage>(HttpMethod.Get, path, null, ct, unwrapEnvelope: false).ConfigureAwait(false);
         return result.Value ?? new ChargingHistoryPage();
+
+        void Add(string name, string? value)
+        {
+            if (!string.IsNullOrEmpty(value))
+            {
+                parameters.Add($"{name}={Uri.EscapeDataString(value)}");
+            }
+        }
     }
 }

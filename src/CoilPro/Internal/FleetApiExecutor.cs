@@ -65,39 +65,21 @@ internal sealed class FleetApiExecutor
     /// the payload bare — confirmed live for <c>api/1/dx/charging/history</c>, which answers
     /// <c>{ "data": [...], "totalResults": n }</c> at the top level.
     /// </param>
+    /// <param name="retryable">
+    /// False for non-idempotent mutations (POST commands, energy settings): the request is sent once and a
+    /// transient failure surfaces instead of being retried, because the first attempt may have taken effect.
+    /// </param>
     public async Task<ApiResult<T>> SendAsync<T>(
         HttpMethod method,
         string path,
         Func<HttpContent>? contentFactory,
         CancellationToken ct,
-        bool unwrapEnvelope = true)
+        bool unwrapEnvelope = true,
+        bool retryable = true)
     {
-        var response = await _pipeline.ExecuteAsync(async token =>
+        var (status, body) = await SendForBodyAsync(method, path, contentFactory, retryable, ct).ConfigureAwait(false);
         {
-            using var request = new HttpRequestMessage(method, path);
-            if (contentFactory is not null)
-            {
-                request.Content = contentFactory();
-            }
-
-            var accessToken = await _tokenFactory(token).ConfigureAwait(false);
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            return await _http.SendAsync(request, token).ConfigureAwait(false);
-        }, ct).ConfigureAwait(false);
-
-        using (response)
-        {
-            // Update from every response we observe — success or failure.
-            LastRateLimit = RateLimitInfo.FromHeaders(response.Headers);
-
-            var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
-
-            if (!response.IsSuccessStatusCode)
-            {
-                throw BuildException(response, body);
-            }
-
+            var response = (StatusCode: status, Body: body);
             T? payload;
             try
             {
@@ -118,6 +100,96 @@ internal sealed class FleetApiExecutor
 
             return new ApiResult<T>(payload, response.StatusCode);
         }
+    }
+
+    /// <summary>
+    /// Like <see cref="SendAsync{T}"/> for list endpoints that put <c>pagination</c> and <c>count</c> next to
+    /// <c>response</c> at the top level of the envelope.
+    /// </summary>
+    public async Task<ApiPageResult<T>> SendPagedAsync<T>(HttpMethod method, string path, CancellationToken ct)
+    {
+        var (status, body) = await SendForBodyAsync(method, path, contentFactory: null, retryable: true, ct).ConfigureAwait(false);
+        try
+        {
+            var envelope = string.IsNullOrEmpty(body) ? null : JsonSerializer.Deserialize<TeslaResponse<T>>(body, JsonOptions);
+            return new ApiPageResult<T>(envelope is null ? default : envelope.Response, envelope?.Pagination, envelope?.Count, status);
+        }
+        catch (JsonException ex)
+        {
+            throw new TeslaApiException(status, $"Failed to parse Fleet API response body: {ex.Message}", responseBody: body, rateLimit: LastRateLimit);
+        }
+    }
+
+    /// <summary>Sends a GET and returns the raw response bytes (e.g. a PDF invoice). Errors map like <see cref="SendAsync{T}"/>.</summary>
+    public async Task<byte[]> SendForBytesAsync(string path, CancellationToken ct)
+    {
+        var response = await _pipeline.ExecuteAsync(async token =>
+        {
+            using var request = await CreateRequestAsync(HttpMethod.Get, path, contentFactory: null, token).ConfigureAwait(false);
+            request.Headers.Accept.Clear();
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("*/*"));
+            return await _http.SendAsync(request, token).ConfigureAwait(false);
+        }, ct).ConfigureAwait(false);
+
+        using (response)
+        {
+            LastRateLimit = RateLimitInfo.FromHeaders(response.Headers);
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorBody = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+                throw BuildException(response, errorBody);
+            }
+
+            return await response.Content.ReadAsByteArrayAsync(ct).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>Creates a JSON request-body factory (a fresh <see cref="HttpContent"/> per attempt).</summary>
+    public static Func<HttpContent> JsonBody<TBody>(TBody body) =>
+        () => new StringContent(JsonSerializer.Serialize(body, JsonOptions), System.Text.Encoding.UTF8, "application/json");
+
+    private async Task<(HttpStatusCode Status, string Body)> SendForBodyAsync(
+        HttpMethod method,
+        string path,
+        Func<HttpContent>? contentFactory,
+        bool retryable,
+        CancellationToken ct)
+    {
+        var pipeline = retryable ? _pipeline : ResiliencePipeline<HttpResponseMessage>.Empty;
+        var response = await pipeline.ExecuteAsync(async token =>
+        {
+            using var request = await CreateRequestAsync(method, path, contentFactory, token).ConfigureAwait(false);
+            return await _http.SendAsync(request, token).ConfigureAwait(false);
+        }, ct).ConfigureAwait(false);
+
+        using (response)
+        {
+            // Update from every response we observe — success or failure.
+            LastRateLimit = RateLimitInfo.FromHeaders(response.Headers);
+
+            var body = await response.Content.ReadAsStringAsync(ct).ConfigureAwait(false);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw BuildException(response, body);
+            }
+
+            return (response.StatusCode, body);
+        }
+    }
+
+    private async Task<HttpRequestMessage> CreateRequestAsync(HttpMethod method, string path, Func<HttpContent>? contentFactory, CancellationToken ct)
+    {
+        var request = new HttpRequestMessage(method, path);
+        if (contentFactory is not null)
+        {
+            request.Content = contentFactory();
+        }
+
+        var accessToken = await _tokenFactory(ct).ConfigureAwait(false);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+        return request;
     }
 
     /// <summary>Builds a <see cref="TeslaApiException"/> from a non-success response, parsing a best-effort error code.</summary>
@@ -215,3 +287,6 @@ internal sealed class FleetApiExecutor
 
 /// <summary>The unwrapped payload of a Fleet API response plus the status it arrived with.</summary>
 internal readonly record struct ApiResult<T>(T? Value, HttpStatusCode StatusCode);
+
+/// <summary>The unwrapped payload of a paged list response plus its top-level <c>pagination</c> and <c>count</c>.</summary>
+internal readonly record struct ApiPageResult<T>(T? Value, TeslaPagination? Pagination, int? Count, HttpStatusCode StatusCode);

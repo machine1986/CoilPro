@@ -54,4 +54,25 @@ public interface ITeslaPartnerClient
     /// <param name="domain">The registered domain, without scheme or path.</param>
     /// <param name="ct">Cancellation token.</param>
     Task<string?> GetPublicKeyAsync(string domain, CancellationToken ct = default);
+
+    /// <summary>
+    /// Specifications of any vehicle by VIN, incl. battery state of health and capacity (<c>GET /api/1/vehicles/{vin}/specs</c>).
+    /// Needs scope <c>vehicle_specs</c> on the partner token; billed at USD 0.10 per successful result.
+    /// </summary>
+    Task<VehicleSpecs> GetVehicleSpecsAsync(string vin, CancellationToken ct = default);
+
+    /// <summary>
+    /// Configuration prices of a model in a market (<c>POST /api/1/dx/vehicles/pricing</c>; scope <c>vehicle_pricing_info</c>).
+    /// </summary>
+    /// <param name="market">ISO-3166 alpha-2 market, e.g. <c>DE</c>.</param>
+    /// <param name="model">Model code: <c>ms</c>, <c>m3</c>, <c>mx</c>, <c>my</c> or <c>ct</c>.</param>
+    /// <param name="language">Language, e.g. <c>de</c>.</param>
+    /// <param name="ct">Cancellation token.</param>
+    Task<VehiclePricing> GetVehiclePricingAsync(string market, string model, string language, CancellationToken ct = default);
+
+    /// <summary>Fleet Telemetry errors across all vehicles of the partner (<c>GET /api/1/partner_accounts/fleet_telemetry_errors</c>).</summary>
+    Task<IReadOnlyList<FleetTelemetryError>> GetFleetTelemetryErrorsAsync(CancellationToken ct = default);
+
+    /// <summary>VINs with recent Fleet Telemetry errors (<c>GET /api/1/partner_accounts/fleet_telemetry_error_vins</c>).</summary>
+    Task<IReadOnlyList<string>> GetFleetTelemetryErrorVinsAsync(CancellationToken ct = default);
 }

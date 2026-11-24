@@ -99,7 +99,7 @@ internal sealed class FakeTransport(EventLog log) : ISignedCommandTransport
     }
 }
 
-internal sealed class FakeCoilClient : ICoilProClient
+internal sealed partial class FakeCoilClient : ICoilProClient
 {
     public List<string> Calls { get; } = [];
 
@@ -126,5 +126,4 @@ internal sealed class FakeCoilClient : ICoilProClient
     public Task<VehicleData> GetVehicleDataAsync(string vehicleTag, VehicleDataEndpoint endpoints = VehicleDataEndpoint.None, CancellationToken ct = default) =>
         throw new NotSupportedException();
 
-    public Task<ChargingHistoryPage> GetChargingHistoryAsync(CancellationToken ct = default) => throw new NotSupportedException();
 }

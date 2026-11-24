@@ -12,4 +12,7 @@ internal sealed record TeslaResponse<T>
 
     [JsonPropertyName("count")]
     public int? Count { get; init; }
+
+    [JsonPropertyName("pagination")]
+    public TeslaPagination? Pagination { get; init; }
 }
