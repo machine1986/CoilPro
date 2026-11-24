@@ -6,7 +6,7 @@ From an empty console project to a printed Tesla authorization URL and an exchan
 
 ## Prerequisites
 
-- .NET SDK 8 or 10 installed (`dotnet --version`)
+- .NET SDK 10 installed (`dotnet --version`); all CoilPro packages target `net10.0`
 - Optional, for a real login: a Tesla developer application, registered at the [Tesla developer dashboard](https://developer.tesla.com/en_US/dashboard) (Client ID and Client Secret). Add your redirect URI there — Tesla only accepts `http://localhost:<port>/...` for local development, **not** `127.0.0.1`.
 
 > Registering an application and completing partner/domain registration is a separate, more involved process — see [Partner Onboarding](partner-onboarding.md). You don't need any of that to try the flow below with a placeholder client id.
