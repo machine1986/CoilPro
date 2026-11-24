@@ -19,4 +19,10 @@
     <Description>Command-line companion for Coil.NET: OAuth login (loopback redirect), key generation, and smoke tests for the Tesla Fleet API. Not affiliated with Tesla, Inc.</Description>
   </PropertyGroup>
 
+  <!-- The tool bundles Coil.Commands (ported protocol + generated protobuf code, Apache-2.0). -->
+  <ItemGroup>
+    <None Include="../../src/Coil.Commands/Protos/LICENSE" Pack="true" PackagePath="licenses/vehicle-command/" Visible="false" />
+    <None Include="../../THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="THIRD-PARTY-NOTICES.md" Visible="false" />
+  </ItemGroup>
+
 </Project>

@@ -13,6 +13,8 @@
 
   <!-- Paket-Metadaten (greifen nur bei packbaren Projekten) -->
   <PropertyGroup>
+    <!-- Release tags look like v0.1.0-preview.1; MinVer strips the prefix. -->
+    <MinVerTagPrefix>v</MinVerTagPrefix>
     <Authors>dotnet services</Authors>
     <Company>dotnet services</Company>
     <Product>Coil.NET</Product>

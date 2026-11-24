@@ -8,7 +8,7 @@ third-party project.
 - Source: https://github.com/teslamotors/vehicle-command
 - Commit: `0a582da430c4aca6d397fb6cbed5b4d6bb380125` (2026-11-03)
 - License: Apache License 2.0 — full text in `src/Coil.Commands/Protos/LICENSE`, shipped in the
-  `Coil.Commands` package as `licenses/vehicle-command-LICENSE.txt`.
+  `Coil.Commands` and `Coil.Cli` packages as `licenses/vehicle-command/LICENSE`.
 - Used in Coil.NET:
   - The protobuf definitions in `src/Coil.Commands/Protos/*.proto`, copied unmodified.
   - The Vehicle Command Protocol implementation in `src/Coil.Commands` is a C# port of the protocol as

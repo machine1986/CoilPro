@@ -1,7 +1,8 @@
 # Release workflow for Coil.NET
 #
-# Triggered by pushing a version tag (e.g. `v1.2.3`). Packs the packable
-# library projects and publishes them to NuGet.org.
+# Triggered by pushing a version tag (e.g. `v0.1.0-preview.1`). Builds, tests,
+# packs the libraries and the `coil` dotnet tool, and publishes them to NuGet.org.
+# MinVer reads the version from the tag (MinVerTagPrefix=v, Directory.Build.props).
 #
 # MANUAL PREP STEP (not automated by this file):
 #   Add a repository secret named NUGET_API_KEY (Settings > Secrets and
@@ -54,8 +55,11 @@ jobs:
       - name: Build (Release)
         run: dotnet build --configuration Release --no-restore
 
-      # Pack only the packable library projects, not the CLI tool, samples,
-      # or test projects.
+      # Never publish a build whose tests fail.
+      - name: Test (Release)
+        run: dotnet test --configuration Release --no-build
+
+      # Pack the libraries and the CLI tool; samples and tests are not packable.
       - name: Pack Coil
         run: >
           dotnet pack src/Coil/Coil.csproj
@@ -73,6 +77,13 @@ jobs:
       - name: Pack Coil.AspNetCore
         run: >
           dotnet pack src/Coil.AspNetCore/Coil.AspNetCore.csproj
+          --configuration Release
+          --no-build
+          --output "${{ env.PACKAGE_OUTPUT_DIR }}"
+
+      - name: Pack Coil.Cli (dotnet tool)
+        run: >
+          dotnet pack tools/Coil.Cli/Coil.Cli.csproj
           --configuration Release
           --no-build
           --output "${{ env.PACKAGE_OUTPUT_DIR }}"

@@ -27,7 +27,7 @@
 
   <!-- Apache-2.0 §4(a): ship the license of the vendored protos with the package. -->
   <ItemGroup>
-    <None Include="Protos/LICENSE" Pack="true" PackagePath="licenses/vehicle-command-LICENSE.txt" />
+    <None Include="Protos/LICENSE" Pack="true" PackagePath="licenses/vehicle-command/" />
     <None Include="../../THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="THIRD-PARTY-NOTICES.md" Visible="false" />
   </ItemGroup>
 
