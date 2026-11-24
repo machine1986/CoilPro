@@ -23,9 +23,6 @@ public sealed partial class CoilProClient
 
     private static string? Bool(bool? value) => value is null ? null : value.Value ? "true" : "false";
 
-    private TeslaApiException EmptyResponse(System.Net.HttpStatusCode status, string what) =>
-        new(status, $"Fleet API returned a success status with an empty {what} response.", responseBody: null, rateLimit: LastRateLimit);
-
     private async Task<T> GetRequiredAsync<T>(string path, string what, CancellationToken ct) where T : class
     {
         var result = await _executor.SendAsync<T>(HttpMethod.Get, path, null, ct).ConfigureAwait(false);
