@@ -7,7 +7,7 @@ public class CoilProClientGetVehiclesTests
     private const string VehiclesJson = """
         {
           "response": [
-            { "id": 100, "vehicle_id": 200, "vin": "5YJ3E1EA1JF000001", "display_name": "My Model 3", "state": "online", "color": "red" },
+            { "id": 100, "vehicle_id": 200, "vin": "5YJ3E1EA1JF000001", "display_name": "My Model 3", "state": "online", "future_field": "red" },
             { "id": 101, "vehicle_id": 201, "vin": "5YJ3E1EA1JF000002", "display_name": "My Model Y", "state": "asleep" }
           ],
           "count": 2
@@ -57,11 +57,11 @@ public class CoilProClientGetVehiclesTests
         var vehicles = await client.GetVehiclesAsync();
 
         Assert.NotNull(vehicles[0].AdditionalData);
-        Assert.True(vehicles[0].AdditionalData!.ContainsKey("color"));
-        Assert.Equal("red", vehicles[0].AdditionalData!["color"].GetString());
+        Assert.True(vehicles[0].AdditionalData!.ContainsKey("future_field"));
+        Assert.Equal("red", vehicles[0].AdditionalData!["future_field"].GetString());
 
         // Second vehicle has no unmodeled fields in the fixture.
-        Assert.False(vehicles[1].AdditionalData?.ContainsKey("color") ?? false);
+        Assert.False(vehicles[1].AdditionalData?.ContainsKey("future_field") ?? false);
     }
 
     [Fact]

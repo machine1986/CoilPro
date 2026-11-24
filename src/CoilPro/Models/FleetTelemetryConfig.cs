@@ -10,14 +10,14 @@ namespace CoilPro;
 /// </summary>
 public sealed record FleetTelemetryConfig
 {
-    /// <summary>Host of your telemetry server; must share the root domain of the application.</summary>
-    [JsonPropertyName("hostname")] public required string Hostname { get; init; }
+    /// <summary>Host of your telemetry server; must share the root domain of the application. Required when configuring.</summary>
+    [JsonPropertyName("hostname")] public string Hostname { get; init; } = string.Empty;
 
     /// <summary>PEM certificate chain the vehicle uses to verify the server.</summary>
-    [JsonPropertyName("ca")] public required string Ca { get; init; }
+    [JsonPropertyName("ca")] public string Ca { get; init; } = string.Empty;
 
     /// <summary>Port of the telemetry server.</summary>
-    [JsonPropertyName("port")] public required int Port { get; init; }
+    [JsonPropertyName("port")] public int Port { get; init; }
 
     /// <summary>Streamed fields by name, e.g. <c>"BatteryLevel"</c>.</summary>
     [JsonPropertyName("fields")] public IDictionary<string, FleetTelemetryFieldConfig> Fields { get; init; } = new Dictionary<string, FleetTelemetryFieldConfig>();
@@ -39,7 +39,7 @@ public sealed record FleetTelemetryConfig
 public sealed record FleetTelemetryFieldConfig
 {
     /// <summary>Send at most every this many seconds.</summary>
-    [JsonPropertyName("interval_seconds")] public required int IntervalSeconds { get; init; }
+    [JsonPropertyName("interval_seconds")] public int IntervalSeconds { get; init; }
 
     /// <summary>Only send when the value changed by at least this much.</summary>
     [JsonPropertyName("minimum_delta")] public double? MinimumDelta { get; init; }
