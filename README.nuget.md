@@ -1,16 +1,18 @@
 # CoilPro
 
-Unofficial, open-source .NET SDK for the **Tesla Fleet API**: OAuth with PKCE, guided partner onboarding,
-typed read endpoints, and **signed vehicle commands** through a native implementation of the Vehicle
-Command Protocol in pure C# — without Tesla's Go-based `tesla-http-proxy`.
+Unofficial, open-source .NET SDK for the **complete Tesla Fleet API**: OAuth with PKCE, guided partner onboarding,
+typed vehicle, user, charging, energy and partner endpoints, Fleet Telemetry configuration, and about 70
+**signed vehicle commands** through a native implementation of the Vehicle Command Protocol in pure C# —
+without Tesla's Go-based `tesla-http-proxy`.
 
 > **Free and open source (MIT).** The "Pro" in the name is the naming scheme of its author's products — there is no paid edition.
 
 > **Unofficial — not affiliated with, endorsed by, or sponsored by Tesla, Inc.**
 > "Tesla" is a trademark of Tesla, Inc. and is used here only to describe API compatibility.
 
-> **Status (0.1.0).** Verified live against the EU region with one Model Y; other regions and vehicles are
-> covered by tests only. Expect API changes before 1.0.
+> **Status (0.2.0).** Verified live against the EU region with one Model Y (REST endpoints and a few signed
+> commands). Energy endpoints are not yet tested live; other regions, vehicles and most commands are covered by
+> tests only. Expect API changes before 1.0.
 
 Target framework: **.NET 10**. License: **MIT**.
 
@@ -18,9 +20,9 @@ Target framework: **.NET 10**. License: **MIT**.
 
 | Package | Contents |
 |---|---|
-| `CoilPro` | Core: OAuth, HTTP plumbing, partner onboarding, vehicle read endpoints, models |
-| `CoilPro.Commands` | Vehicle Command Protocol — signed commands |
-| `CoilPro.AspNetCore` | DI extensions (`AddCoilProProApi`, `AddCoilProProCommands`), OAuth callback helper |
+| `CoilPro` | Core: OAuth, HTTP plumbing, partner onboarding, vehicle/user/charging/energy endpoints, models |
+| `CoilPro.Commands` | Vehicle Command Protocol — signed commands, signed Fleet Telemetry configuration |
+| `CoilPro.AspNetCore` | DI extensions (`AddCoilProApi`, `AddCoilProCommands`), OAuth callback helper |
 | `CoilPro.Cli` | `dotnet tool` (`coilpro`): onboarding, key generation, smoke tests |
 
 ## Onboarding (once, before your first API call)
@@ -45,7 +47,7 @@ The Fleet API is pay-per-use: request only the segments you need.
 ```csharp
 using CoilPro;
 
-ICoilProClient coil = new CoilProClient(apiHttp, tokenProvider, new CoilProClientOptions()); // or inject via AddCoilProProApi
+ICoilProClient coil = new CoilProClient(apiHttp, tokenProvider, new CoilProClientOptions()); // or inject via AddCoilProApi
 
 var vehicles = await coil.GetVehiclesAsync();
 var data = await coil.GetVehicleDataAsync(
@@ -73,7 +75,7 @@ CommandResult result = await commands.SetChargeLimitAsync("<17-character VIN>", 
 A vehicle refusal comes back as `CommandResult { Success = false, Reason }`; delivery or authentication
 failures throw `TeslaCommandException` (including `TeslaKeyNotPairedException` and
 `TeslaVehicleAsleepException`). Waking a sleeping vehicle is opt-in (`CoilProCommandsOptions.AutoWake`) because
-it is a billed call. With DI: `services.AddCoilProProCommands(...)` from `CoilPro.AspNetCore`.
+it is a billed call. With DI: `services.AddCoilProCommands(...)` from `CoilPro.AspNetCore`.
 
 ## Documentation
 

@@ -13,7 +13,9 @@ namespace CoilPro.AspNetCore;
 public static class CoilProCommandsServiceCollectionExtensions
 {
     /// <summary>
-    /// Registers <see cref="ICoilProCommands"/> → <see cref="CoilProCommands"/> as a singleton. The
+    /// Registers <see cref="ICoilProCommands"/> → <see cref="CoilProCommands"/> and
+    /// <see cref="IFleetTelemetryConfigurator"/> → <see cref="FleetTelemetryConfigurator"/> (signed Fleet Telemetry
+    /// configuration) as singletons. The
     /// <see cref="TeslaKeyPair"/> must be registered separately, for example
     /// <c>services.AddSingleton(TeslaKeyPair.FromPrivateKeyPem(pem))</c> — or use one of the overloads that
     /// takes a PEM string or a factory.
@@ -40,6 +42,15 @@ public static class CoilProCommandsServiceCollectionExtensions
                 sp.GetRequiredService<TeslaKeyPair>(),
                 sp.GetService<ICoilProClient>(),
                 sp.GetRequiredService<CoilProCommandsOptions>());
+        });
+
+        services.TryAddSingleton<IFleetTelemetryConfigurator>(sp =>
+        {
+            var http = sp.GetRequiredService<IHttpClientFactory>().CreateClient(CoilProServiceCollectionExtensions.ApiHttpClientName);
+            return new FleetTelemetryConfigurator(
+                http,
+                sp.GetRequiredService<ITeslaTokenProvider>(),
+                sp.GetRequiredService<TeslaKeyPair>());
         });
 
         return services;

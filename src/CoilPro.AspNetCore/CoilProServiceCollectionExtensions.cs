@@ -7,7 +7,7 @@ namespace CoilPro.AspNetCore;
 /// <summary>
 /// Dependency-injection extensions that wire up the CoilPro Tesla Fleet API SDK
 /// (<see cref="ITeslaAuthClient"/>, <see cref="ITokenStore"/>, <see cref="ITeslaTokenProvider"/>,
-/// <see cref="ICoilProClient"/>) for ASP.NET Core / generic-host apps.
+/// <see cref="ICoilProClient"/>, <see cref="ICoilProEnergyClient"/>) for ASP.NET Core / generic-host apps.
 /// </summary>
 public static class CoilProServiceCollectionExtensions
 {
@@ -38,6 +38,10 @@ public static class CoilProServiceCollectionExtensions
     /// <c>TryAdd</c>), backed by the <see cref="ApiHttpClientName"/> client, the resolved
     /// <see cref="ITeslaTokenProvider"/>, and a <see cref="CoilProClientOptions"/> instance — defaulted, or customized
     /// via <paramref name="configureClient"/>.</description></item>
+    /// <item><description>Registers <see cref="ICoilProEnergyClient"/> → <see cref="CoilProEnergyClient"/> (registered with
+    /// <c>TryAdd</c>) for Powerwall, solar and Wall Connector sites, sharing the same <see cref="ApiHttpClientName"/>
+    /// client, token provider and <see cref="CoilProClientOptions"/>. Its calls need the <c>energy_device_data</c> /
+    /// <c>energy_cmds</c> scopes.</description></item>
     /// </list>
     /// </summary>
     /// <param name="services">The service collection to add registrations to.</param>
@@ -97,6 +101,15 @@ public static class CoilProServiceCollectionExtensions
             var tokenProvider = sp.GetRequiredService<ITeslaTokenProvider>();
             var options = sp.GetRequiredService<CoilProClientOptions>();
             return new CoilProClient(http, tokenProvider, options);
+        });
+
+        services.TryAddSingleton<ICoilProEnergyClient>(sp =>
+        {
+            var httpClientFactory = sp.GetRequiredService<IHttpClientFactory>();
+            var http = httpClientFactory.CreateClient(ApiHttpClientName);
+            var tokenProvider = sp.GetRequiredService<ITeslaTokenProvider>();
+            var options = sp.GetRequiredService<CoilProClientOptions>();
+            return new CoilProEnergyClient(http, tokenProvider, options);
         });
 
         return services;

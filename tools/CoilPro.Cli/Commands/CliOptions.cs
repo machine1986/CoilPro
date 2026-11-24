@@ -21,12 +21,14 @@ internal sealed class CliOptions
     /// <summary>
     /// Scopes for <c>coilpro login</c> when <c>--scopes</c> is not given: everything the vehicle commands of this
     /// CLI need (read data incl. location, send commands). Bare <c>openid offline_access</c> logs in fine but
-    /// every vehicle call then fails with "missing scopes".
+    /// every vehicle call then fails with "missing scopes". Includes the energy scopes so `coilpro energy` works
+    /// out of the box (narrow with <c>--scopes</c> if your application is not configured for them).
     /// </summary>
     public static readonly TeslaScopes DefaultLoginScopes =
         TeslaScopes.Openid | TeslaScopes.OfflineAccess | TeslaScopes.UserData
         | TeslaScopes.VehicleDeviceData | TeslaScopes.VehicleLocation
-        | TeslaScopes.VehicleCmds | TeslaScopes.VehicleChargingCmds;
+        | TeslaScopes.VehicleCmds | TeslaScopes.VehicleChargingCmds
+        | TeslaScopes.EnergyDeviceData | TeslaScopes.EnergyCmds;
 
     public TeslaScopes Scopes { get; private init; } = DefaultLoginScopes;
 
@@ -146,6 +148,9 @@ internal sealed class CliOptions
                 "vehiclechargingcmds" => TeslaScopes.VehicleChargingCmds,
                 "energydevicedata" => TeslaScopes.EnergyDeviceData,
                 "energycmds" => TeslaScopes.EnergyCmds,
+                "vehiclespecs" => TeslaScopes.VehicleSpecs,
+                "vehiclepricinginfo" => TeslaScopes.VehiclePricingInfo,
+                "enterprisemanagement" => TeslaScopes.EnterpriseManagement,
                 _ => throw new CliUsageException($"Unknown scope: '{part}'."),
             };
         }
