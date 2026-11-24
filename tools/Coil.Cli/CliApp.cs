@@ -42,6 +42,9 @@ internal static class CliApp
             case "wake":
                 return await WakeCommand.RunAsync(rest, ct).ConfigureAwait(false);
 
+            case "cmd":
+                return await CmdCommand.RunAsync(rest, ct).ConfigureAwait(false);
+
             default:
                 Console.Error.WriteLine($"Unknown command: '{command}'.");
                 Console.Error.WriteLine();
@@ -70,6 +73,7 @@ internal static class CliApp
               vehicles    List the vehicles on the authenticated account.
               data        Fetch a vehicle data snapshot (battery, drive, climate, vehicle state).
               wake        Wake a sleeping vehicle.
+              cmd         Send a signed vehicle command (lock, flash, charge-limit, ...).
 
             First-time setup:
               coil keys generate
@@ -94,6 +98,17 @@ internal static class CliApp
               <vin>                     Vehicle id or VIN (required)
               --endpoints <e1,e2,...>   Data segments to request, default: charge_state,drive_state,
                                         climate_state,vehicle_state
+
+            'cmd' usage:
+              coil cmd <VIN> <command> [args] [--wake] [--timeout <seconds>]
+              Commands: lock, unlock, honk, flash, climate-on, climate-off, temps <driverC> <passengerC>,
+                        charge-start, charge-stop, charge-limit <percent>, charge-port-open,
+                        charging-amps <amps>
+              <VIN>                     17-character VIN (not the numeric id)
+              --wake                    Wake a sleeping vehicle first (billed Fleet API call)
+              --timeout <seconds>       Overall command deadline, default: 30
+              Needs `coil keys generate`, a paired virtual key and a prior `coil login`.
+              Exit codes: 0 ok, 1 error, 2 refused by vehicle, 3 key not paired, 4 vehicle asleep.
 
             Global:
               --help, -h                Show this help.

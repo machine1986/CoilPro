@@ -69,6 +69,36 @@ dotnet run --project tools/Coil.Cli -c Release -- data <VIN> --endpoints charge_
 dotnet run --project tools/Coil.Cli -c Release -- wake <VIN>
 ```
 
+## Signed commands (M3)
+
+Voraussetzungen: Schritt 0 (Partner-Registrierung, Public Key gehostet), Login mit den Scopes `vehicle_cmds` und `vehicle_charging_cmds` (in den Standard-Scopes von `coil login` enthalten — ein vor M3 erzeugter Login muss ggf. wiederholt werden) und der Private Key unter `~/.coil/keys/private-key.pem` (`coil keys generate`).
+
+**1. Virtual Key installieren (einmalig).** Auf dem Handy mit Tesla-App `https://tesla.com/_ak/<domain>` öffnen, die Anfrage bestätigen und im Auto mit Key-Card/Handy-Key freigeben. Ohne diesen Schritt endet jedes Kommando mit Exit-Code 3 (`TeslaKeyNotPairedException`).
+
+**2. Harmloser Erstest: Lichter blinken.**
+
+```bash
+dotnet run --project tools/Coil.Cli -c Release -- cmd <VIN> flash
+```
+
+Erwartet: `OK` (Exit 0), das Auto blinkt. Schläft das Fahrzeug: Exit 4 → `coil wake <VIN>` oder `--wake` (kostenpflichtiger Wake-Call).
+
+**3. Ladelimit setzen** (reversibel; vorher mit `coil data <VIN>` den aktuellen Wert notieren):
+
+```bash
+dotnet run --project tools/Coil.Cli -c Release -- cmd <VIN> charge-limit 80
+dotnet run --project tools/Coil.Cli -c Release -- cmd <VIN> charge-limit 80   # zweiter Aufruf: "Refused: already_set" (Exit 2) ist korrekt
+```
+
+**4. Verriegeln / Entriegeln** (nur in unmittelbarer Nähe des Autos testen):
+
+```bash
+dotnet run --project tools/Coil.Cli -c Release -- cmd <VIN> lock
+dotnet run --project tools/Coil.Cli -c Release -- cmd <VIN> unlock
+```
+
+Exit-Codes: `0` OK, `1` Fehler, `2` vom Fahrzeug verweigert (`Refused: <Grund>`), `3` Key nicht gepairt, `4` Fahrzeug schläft. `<VIN>` ist die 17-stellige VIN, nicht die numerische ID. Ergebnisse und Abweichungen (Fault-Codes, Fehlerbilder) in [`api-deviations.md`](./api-deviations.md) nachtragen.
+
 ## Bekannte Stolpersteine
 
 - **Ohne Schritt 0 geht nichts.** Die Partner-Registrierung ist keine Formalie für später — sie ist Voraussetzung für den API-Zugriff.

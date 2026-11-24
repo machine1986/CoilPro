@@ -82,6 +82,25 @@ Console.WriteLine($"Rate limit: {coil.LastRateLimit?.Remaining}/{coil.LastRateLi
 
 Errors surface as `TeslaApiException` (status code, Tesla error code, rate-limit info, raw body).
 
+## Signed commands
+
+`ICoilCommands` (package `Coil.Commands`) sends commands over the native Vehicle Command Protocol — no
+`tesla-http-proxy`. You need partner registration, a hosted public key, the virtual key installed on the
+vehicle (`https://tesla.com/_ak/<your-domain>`), and the `vehicle_cmds` / `vehicle_charging_cmds` scopes.
+
+```csharp
+using var keyPair = TeslaKeyPair.FromPrivateKeyPem(File.ReadAllText("private-key.pem"));
+ICoilCommands commands = new CoilCommands(apiHttp, tokenProvider, keyPair);
+
+CommandResult result = await commands.SetChargeLimitAsync("<VIN>", 80); // 17-character VIN
+```
+
+A vehicle refusal comes back as `CommandResult { Success = false, Reason }`; delivery or authentication
+failures throw `TeslaCommandException` (including `TeslaKeyNotPairedException` and
+`TeslaVehicleAsleepException`). Waking a sleeping vehicle is opt-in (`CoilCommandsOptions.AutoWake`) because
+it is a billed call. With DI: `services.AddCoilCommands(...)` from `Coil.AspNetCore`. CLI:
+`coil cmd <VIN> flash`.
+
 ## Documentation
 
 Full docs, the partner-onboarding walkthrough, and the running log of deviations between Tesla's

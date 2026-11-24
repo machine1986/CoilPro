@@ -4,3 +4,5 @@
   href: reading-vehicle-data.md
 - name: Partner Onboarding
   href: partner-onboarding.md
+- name: Signed Vehicle Commands
+  href: commands.md
