@@ -28,6 +28,7 @@ public sealed record ChargingHistoryPage
     [JsonPropertyName("hasMoreData")]
     public bool? HasMoreData { get; init; }
 
+    /// <summary>Fields in the response that are not modeled by this type, keyed by JSON property name.</summary>
     [JsonExtensionData]
     public IDictionary<string, JsonElement>? AdditionalData { get; init; }
 }
@@ -38,6 +39,7 @@ public sealed record ChargingRecord
     /// <summary>Tesla's id of the charging session.</summary>
     [JsonPropertyName("sessionId")] public long? SessionId { get; init; }
 
+    /// <summary>Vehicle identification number of the charged vehicle.</summary>
     [JsonPropertyName("vin")] public string? Vin { get; init; }
 
     /// <summary>Human-readable site name, e.g. <c>Irxleben, Germany</c>.</summary>
@@ -64,6 +66,7 @@ public sealed record ChargingRecord
     /// <summary>Invoice documents for this session.</summary>
     [JsonPropertyName("invoices")] public IReadOnlyList<ChargingInvoice> Invoices { get; init; } = [];
 
+    /// <summary>Fields in the response that are not modeled by this type, keyed by JSON property name.</summary>
     [JsonExtensionData] public IDictionary<string, JsonElement>? AdditionalData { get; init; }
 }
 
@@ -73,6 +76,7 @@ public sealed record ChargingRecord
 /// </summary>
 public sealed record ChargingFee
 {
+    /// <summary>Id of this fee line.</summary>
     [JsonPropertyName("sessionFeeId")] public long? SessionFeeId { get; init; }
 
     /// <summary>Kind of fee, e.g. <c>CHARGING</c> or <c>CONGESTION</c>.</summary>
@@ -87,32 +91,43 @@ public sealed record ChargingFee
     /// <summary>Unit of <see cref="UsageBase"/>, e.g. <c>kwh</c> or <c>min</c>.</summary>
     [JsonPropertyName("uom")] public string? Uom { get; init; }
 
+    /// <summary>Base rate per unit of <see cref="Uom"/>.</summary>
     [JsonPropertyName("rateBase")] public decimal? RateBase { get; init; }
 
+    /// <summary>Billed usage in <see cref="Uom"/>.</summary>
     [JsonPropertyName("usageBase")] public decimal? UsageBase { get; init; }
 
+    /// <summary>Base amount before adjustments, in <see cref="CurrencyCode"/>.</summary>
     [JsonPropertyName("totalBase")] public decimal? TotalBase { get; init; }
 
+    /// <summary>Amount due, in <see cref="CurrencyCode"/>.</summary>
     [JsonPropertyName("totalDue")] public decimal? TotalDue { get; init; }
 
+    /// <summary>Net amount due, in <see cref="CurrencyCode"/>.</summary>
     [JsonPropertyName("netDue")] public decimal? NetDue { get; init; }
 
+    /// <summary>Whether the fee has been paid.</summary>
     [JsonPropertyName("isPaid")] public bool? IsPaid { get; init; }
 
+    /// <summary>Payment status string as reported by the Fleet API field <c>status</c>.</summary>
     [JsonPropertyName("status")] public string? Status { get; init; }
 
+    /// <summary>Fields in the response that are not modeled by this type, keyed by JSON property name.</summary>
     [JsonExtensionData] public IDictionary<string, JsonElement>? AdditionalData { get; init; }
 }
 
 /// <summary>Reference to an invoice document of a charging session.</summary>
 public sealed record ChargingInvoice
 {
+    /// <summary>File name of the invoice document.</summary>
     [JsonPropertyName("fileName")] public string? FileName { get; init; }
 
     /// <summary>Id to download the invoice document with.</summary>
     [JsonPropertyName("contentId")] public string? ContentId { get; init; }
 
+    /// <summary>Invoice type as reported by the Fleet API field <c>invoiceType</c>.</summary>
     [JsonPropertyName("invoiceType")] public string? InvoiceType { get; init; }
 
+    /// <summary>Fields in the response that are not modeled by this type, keyed by JSON property name.</summary>
     [JsonExtensionData] public IDictionary<string, JsonElement>? AdditionalData { get; init; }
 }

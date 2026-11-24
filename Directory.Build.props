@@ -7,8 +7,6 @@
     <Deterministic>true</Deterministic>
     <ContinuousIntegrationBuild Condition="'$(GITHUB_ACTIONS)' == 'true'">true</ContinuousIntegrationBuild>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <!-- Fehlende XML-Kommentare als Warnung, nicht als Fehler -->
-    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <!-- Paket-Metadaten (greifen nur bei packbaren Projekten) -->
