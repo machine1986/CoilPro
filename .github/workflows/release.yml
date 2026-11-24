@@ -1,6 +1,6 @@
 # Release workflow for CoilPro
 #
-# Triggered by pushing a version tag (e.g. `v0.1.0-preview.1`). Builds, tests,
+# Triggered by pushing a version tag (e.g. `v0.1.0`). Builds, tests,
 # packs the libraries and the `coilpro` dotnet tool, and publishes them to NuGet.org.
 # MinVer reads the version from the tag (MinVerTagPrefix=v, Directory.Build.props).
 #

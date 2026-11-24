@@ -2,7 +2,7 @@
 
 From an empty console project to a printed Tesla authorization URL and an exchanged access token. No Tesla account is required to print the URL — you only need one to actually log in.
 
-> **Preview.** CoilPro `0.1.0-preview` was verified live against the EU region with one vehicle. Behaviour in other regions or on other vehicle models is untested.
+> **Status.** CoilPro `0.1.0` was verified live against the EU region with one vehicle. Behaviour in other regions or on other vehicle models is untested.
 
 ## Prerequisites
 

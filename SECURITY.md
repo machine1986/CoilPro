@@ -16,7 +16,7 @@ re-register the domain, re-pair the virtual key) before reporting.
 
 ## Supported versions
 
-CoilPro is in preview; only the latest published preview receives fixes.
+CoilPro is pre-1.0; only the latest published version receives fixes.
 
 ## Scope
 

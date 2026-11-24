@@ -18,7 +18,7 @@ vehicle commands without running Tesla's Go-based `tesla-http-proxy`.
 > **Unofficial — not affiliated with, endorsed by, or sponsored by Tesla, Inc.**
 > "Tesla" is a trademark of Tesla, Inc. and is used here only to describe API compatibility.
 
-> **Preview (`0.1.0-preview`).** Verified live against the **EU region with one Model Y**. Other regions,
+> **Status (`0.1.0`).** Verified live against the **EU region with one Model Y**. Other regions,
 > vehicle models and most individual commands are covered by tests only. Expect API changes before 1.0.
 > Details: [`docs/api-deviations.md`](./docs/api-deviations.md).
 

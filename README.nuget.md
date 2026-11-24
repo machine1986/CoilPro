@@ -9,7 +9,7 @@ Command Protocol in pure C# — without Tesla's Go-based `tesla-http-proxy`.
 > **Unofficial — not affiliated with, endorsed by, or sponsored by Tesla, Inc.**
 > "Tesla" is a trademark of Tesla, Inc. and is used here only to describe API compatibility.
 
-> **Preview.** Verified live against the EU region with one Model Y; other regions and vehicles are
+> **Status (0.1.0).** Verified live against the EU region with one Model Y; other regions and vehicles are
 > covered by tests only. Expect API changes before 1.0.
 
 Target framework: **.NET 10**. License: **MIT**.

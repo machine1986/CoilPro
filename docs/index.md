@@ -4,7 +4,7 @@
 
 > **Unofficial — not affiliated with, endorsed by, or sponsored by Tesla, Inc.** "Tesla" is used only to describe API compatibility.
 
-> **Preview.** `0.1.0-preview` — verified live against the EU region with one Model Y. Expect API changes before 1.0.
+> **Status.** `0.1.0` — verified live against the EU region with one Model Y. Expect API changes before 1.0.
 
 ## What it does
 
