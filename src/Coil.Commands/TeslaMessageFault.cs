@@ -36,7 +36,7 @@ public enum TeslaMessageFault
     BadParameter = 13,
     /// <summary>The vehicle keychain has no free slot.</summary>
     KeychainIsFull = 14,
-    /// <summary>The session epoch does not match; the session must be re-established.</summary>
+    /// <summary>The session epoch does not match (the domain restarted); resync from the session info in the fault reply and retry.</summary>
     IncorrectEpoch = 15,
     /// <summary>The initialization vector had an incorrect length.</summary>
     IvIncorrectLength = 16,

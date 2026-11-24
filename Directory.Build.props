@@ -9,6 +9,14 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
+  <!--
+    XML-Doku ist nur für die Bibliotheken unter src/ Pflicht (CS1591 = Warnung). Tests, Samples und das
+    CLI-Tool haben keine öffentliche API für Konsumenten.
+  -->
+  <PropertyGroup Condition="!$(MSBuildProjectDirectory.Replace('\', '/').Contains('/src/'))">
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
   <!-- Paket-Metadaten (greifen nur bei packbaren Projekten) -->
   <PropertyGroup>
     <!-- Release tags look like v0.1.0-preview.1; MinVer strips the prefix. -->
