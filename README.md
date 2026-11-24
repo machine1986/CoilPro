@@ -1,3 +1,8 @@
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="assets/logo/coilpro-logo-inverse.svg">
+  <img src="assets/logo/coilpro-logo.svg" alt="CoilPro" width="174" height="72">
+</picture>
+
 # CoilPro
 
 [![CI](https://github.com/machine1986/CoilPro/actions/workflows/ci.yml/badge.svg)](https://github.com/machine1986/CoilPro/actions/workflows/ci.yml)

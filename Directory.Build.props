@@ -42,7 +42,7 @@
   <!--
     Das Paket bekommt ein eigenes, kompakteres README.nuget.md, das als README.md ins Paket wandert;
     das Root-README.md richtet sich an Besucher des Repos.
-    assets/icon.png ist ein Platzhalter-Mark, kein finales Logo.
+    assets/icon.png ist das CoilPro-App-Icon (512 px); weitere Logo-Varianten in assets/logo/.
   -->
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)README.nuget.md" Pack="true" PackagePath="README.md" Visible="false" />

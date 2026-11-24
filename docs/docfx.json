@@ -29,11 +29,18 @@
         "files": ["articles/**.md", "articles/**/toc.yml"]
       }
     ],
+    "resource": [
+      {
+        "files": ["images/**"]
+      }
+    ],
     "output": "_site",
     "template": ["default", "modern"],
     "globalMetadata": {
       "_appTitle": "CoilPro",
       "_appName": "CoilPro",
+      "_appLogoPath": "images/coilpro-logo-line.svg",
+      "_appFaviconPath": "images/coilpro-favicon.svg",
       "_appFooter": "CoilPro — unofficial, not affiliated with Tesla, Inc.",
       "_enableSearch": true,
       "_gitContribute": {
