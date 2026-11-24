@@ -120,7 +120,7 @@ internal static class DataCommand
         }
     }
 
-    private static void PrintSummary(VehicleData data)
+    internal static void PrintSummary(VehicleData data)
     {
         Console.WriteLine($"Vehicle: {data.Vin ?? "-"} (id {data.Id})");
         Console.WriteLine($"State:   {data.State ?? "-"}");

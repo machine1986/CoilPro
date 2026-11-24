@@ -18,18 +18,24 @@ vehicle commands without running Tesla's Go-based `tesla-http-proxy`.
 > **Unofficial — not affiliated with, endorsed by, or sponsored by Tesla, Inc.**
 > "Tesla" is a trademark of Tesla, Inc. and is used here only to describe API compatibility.
 
-> **Status (`0.1.0`).** Verified live against the **EU region with one Model Y**. Other regions,
-> vehicle models and most individual commands are covered by tests only. Expect API changes before 1.0.
+> **Status (`0.2.0`).** Verified live against the **EU region with one Model Y** (REST endpoints, partner
+> registration, and the signed commands `flash`, `lock`, `unlock`, `charge-limit`, climate on/off). The account has
+> Wall Connectors, but the **energy endpoints are not yet tested live**. Other regions, vehicle models, business-account
+> endpoints and most individual commands are covered by tests only. Expect API changes before 1.0.
 > Details: [`docs/api-deviations.md`](./docs/api-deviations.md).
 
 ## Features
 
-- **Signed commands** (`CoilPro.Commands`): lock/unlock, honk, flash, climate, charging control, charge limit, charge port, charging amps — ECDH session handshake, ECDSA P-256, HMAC and AES-GCM, Protobuf envelope, using `System.Security.Cryptography` only.
+CoilPro aims at the **complete Fleet API**:
+
+- **Signed commands** (`CoilPro.Commands`): about 70 commands — lock/unlock, trunks and tonneau, climate and seats, charging and schedules, media, Sentry, valet, PIN to Drive, speed limit, parental controls, software updates, HomeLink — using an ECDH session handshake, ECDSA P-256, HMAC and AES-GCM and a Protobuf envelope on `System.Security.Cryptography` only. See the [command reference](./docs/articles/commands.md).
+- **Vehicle, user and charging endpoints** (`ICoilProClient`): vehicles, `vehicle_data` with per-segment filters (the Fleet API is pay-per-use) and the free cached variant, fleet status, alerts, release notes, service data and history, drivers and share invitations, charging history and invoices, warranty, options, unsigned navigation commands. Free and billed calls are marked in the [endpoint overview](./docs/articles/vehicle-endpoints.md).
+- **Energy** (`ICoilProEnergyClient`): Powerwall, solar and Wall Connector sites — live status, history, tariffs and settings.
+- **Fleet Telemetry configuration**: native signing, read and delete of vehicle telemetry configs (the telemetry server itself is not included).
+- **Partner endpoints**: registration, key verification, vehicle specs and pricing, telemetry errors.
 - **OAuth**: authorization code + PKCE, client credentials, refresh; token store and token provider abstractions.
-- **Partner onboarding**: P-256 key generation, domain registration, registered-key verification (`coilpro` CLI and `ITeslaPartnerClient`).
-- **Read endpoints**: vehicle list, `vehicle_data` with per-segment filters (the Fleet API is pay-per-use), wake-up, charging history, rate-limit tracking, tolerant model deserialization.
-- **ASP.NET Core / DI** integration (`AddCoilProProApi`, `AddCoilProProCommands`) with `IHttpClientFactory` and Polly retries.
-- **`coilpro` CLI** (`dotnet tool`) for onboarding and smoke tests.
+- **ASP.NET Core / DI** integration (`AddCoilProApi`, `AddCoilProCommands`) with `IHttpClientFactory` and Polly retries.
+- **`coilpro` CLI** (`dotnet tool`): onboarding, key generation, read commands and every signed command.
 
 Targets `net10.0`. MIT licensed.
 
@@ -37,7 +43,7 @@ Targets `net10.0`. MIT licensed.
 
 | Package | Contents |
 |---|---|
-| [`CoilPro`](https://www.nuget.org/packages/CoilPro/) | Core: OAuth, HTTP layer, partner onboarding, vehicle read endpoints, models |
+| [`CoilPro`](https://www.nuget.org/packages/CoilPro/) | Core: OAuth, HTTP layer, partner onboarding, vehicle/user/charging/energy endpoints, models |
 | [`CoilPro.Commands`](https://www.nuget.org/packages/CoilPro.Commands/) | Vehicle Command Protocol — signed commands |
 | [`CoilPro.AspNetCore`](https://www.nuget.org/packages/CoilPro.AspNetCore/) | DI extensions, OAuth callback helper |
 | [`CoilPro.Cli`](https://www.nuget.org/packages/CoilPro.Cli/) | `dotnet tool` providing the `coilpro` command |
@@ -126,7 +132,7 @@ Console.WriteLine(result.Success ? "OK" : $"Refused: {result.Reason}");
 A vehicle refusal is returned as `CommandResult { Success = false, Reason }`; delivery or authentication
 failures throw `TeslaCommandException` (including `TeslaKeyNotPairedException` and
 `TeslaVehicleAsleepException`). Waking a sleeping car is opt-in (`CoilProCommandsOptions.AutoWake`) because it
-is a billed call. In ASP.NET Core use `services.AddCoilProProApi(...)` and `services.AddCoilProProCommands(...)`.
+is a billed call. In ASP.NET Core use `services.AddCoilProApi(...)` and `services.AddCoilProCommands(...)`.
 
 ## Documentation
 
@@ -135,7 +141,10 @@ Full documentation site with API reference: **https://machine1986.github.io/Coil
 - [Getting Started](./docs/articles/getting-started.md)
 - [Partner Onboarding](./docs/articles/partner-onboarding.md)
 - [Reading Vehicle Data](./docs/articles/reading-vehicle-data.md)
+- [Vehicle, User and Account Endpoints](./docs/articles/vehicle-endpoints.md)
+- [Energy Products](./docs/articles/energy.md)
 - [Signed Vehicle Commands](./docs/articles/commands.md)
+- [Fleet Telemetry Configuration](./docs/articles/fleet-telemetry.md)
 - [API Deviations](./docs/api-deviations.md) — where the real API differed from Tesla's documentation, with live-verification notes
 - [Protocol notes](./docs/m3-command-protocol.md)
 - API reference: built with DocFX (`dotnet tool restore && dotnet docfx docs/docfx.json`) and published to GitHub Pages once Pages is enabled.

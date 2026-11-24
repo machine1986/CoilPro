@@ -2,7 +2,13 @@
   href: getting-started.md
 - name: Reading Vehicle Data
   href: reading-vehicle-data.md
+- name: Vehicle, User and Account Endpoints
+  href: vehicle-endpoints.md
+- name: Energy Products
+  href: energy.md
 - name: Partner Onboarding
   href: partner-onboarding.md
 - name: Signed Vehicle Commands
   href: commands.md
+- name: Fleet Telemetry Configuration
+  href: fleet-telemetry.md
