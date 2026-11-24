@@ -124,7 +124,6 @@ public class TeslaAuthClientTokenTests
     {
         var handler = StubHttpMessageHandler.ReturningJson(TokenJson);
         var options = CreateOptions(clientSecret: "s3cr3t");
-        var endpoints = TeslaEndpoints.For(options.Region);
         var client = new TeslaAuthClient(new HttpClient(handler), options);
 
         var tokens = await client.GetPartnerTokenAsync();
@@ -136,7 +135,24 @@ public class TeslaAuthClientTokenTests
         Assert.Equal(options.ClientId, form["client_id"]);
         Assert.Equal("s3cr3t", form["client_secret"]);
         Assert.Equal(options.Scopes.ToScopeString(), form["scope"]);
-        Assert.Equal(endpoints.FleetApiBaseUrl.ToString(), form["audience"]);
+        // Literal on purpose: comparing against FleetApiBaseUrl.ToString() hid a trailing "/" that the
+        // live token endpoint rejects with 400 invalid_audience.
+        Assert.Equal("https://fleet-api.prd.na.vn.cloud.tesla.com", form["audience"]);
+    }
+
+    [Theory]
+    [InlineData(TeslaRegion.NorthAmerica, "https://fleet-api.prd.na.vn.cloud.tesla.com")]
+    [InlineData(TeslaRegion.Europe, "https://fleet-api.prd.eu.vn.cloud.tesla.com")]
+    public async Task GetPartnerTokenAsync_SendsAudienceWithoutTrailingSlash(TeslaRegion region, string expectedAudience)
+    {
+        var handler = StubHttpMessageHandler.ReturningJson(TokenJson);
+        var options = CreateOptions(clientSecret: "s3cr3t");
+        options.Region = region;
+        var client = new TeslaAuthClient(new HttpClient(handler), options);
+
+        await client.GetPartnerTokenAsync();
+
+        Assert.Equal(expectedAudience, Assert.Single(handler.Requests).FormValues["audience"]);
     }
 
     [Fact]

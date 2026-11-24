@@ -115,7 +115,9 @@ public sealed class TeslaAuthClient : ITeslaAuthClient
             new("client_id", _options.ClientId),
             new("client_secret", _options.ClientSecret),
             new("scope", _options.Scopes.ToScopeString()),
-            new("audience", _endpoints.FleetApiBaseUrl.ToString()),
+            // Bare origin, no trailing slash: Uri.ToString() would append "/" and Tesla rejects that
+            // with 400 invalid_audience.
+            new("audience", _endpoints.FleetApiBaseUrl.GetLeftPart(UriPartial.Authority)),
         };
 
         return SendTokenRequestAsync(form, ct);
