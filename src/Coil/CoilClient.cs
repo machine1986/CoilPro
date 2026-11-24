@@ -68,7 +68,8 @@ public sealed class CoilClient : ICoilClient
         // PROVISIONAL: path, query parameters and response envelope for the charging-history endpoint
         // are not confirmed against current developer.tesla.com docs. Verify before release and record
         // any deviation in docs/api-deviations.md.
-        var result = await _executor.SendAsync<ChargingHistoryPage>(HttpMethod.Get, "api/1/dx/charging/history", null, ct).ConfigureAwait(false);
+        // No { "response": ... } envelope on this endpoint (confirmed live 2026-11-24).
+        var result = await _executor.SendAsync<ChargingHistoryPage>(HttpMethod.Get, "api/1/dx/charging/history", null, ct, unwrapEnvelope: false).ConfigureAwait(false);
         return result.Value ?? new ChargingHistoryPage();
     }
 }

@@ -60,11 +60,17 @@ internal sealed class FleetApiExecutor
     /// attempt needs a fresh <see cref="HttpContent"/> — a consumed one cannot be re-sent.
     /// </param>
     /// <param name="ct">Cancellation token.</param>
+    /// <param name="unwrapEnvelope">
+    /// True (default) for the usual <c>{ "response": ... }</c> envelope. False for endpoints that return
+    /// the payload bare — confirmed live for <c>api/1/dx/charging/history</c>, which answers
+    /// <c>{ "data": [...], "totalResults": n }</c> at the top level.
+    /// </param>
     public async Task<ApiResult<T>> SendAsync<T>(
         HttpMethod method,
         string path,
         Func<HttpContent>? contentFactory,
-        CancellationToken ct)
+        CancellationToken ct,
+        bool unwrapEnvelope = true)
     {
         var response = await _pipeline.ExecuteAsync(async token =>
         {
@@ -92,12 +98,14 @@ internal sealed class FleetApiExecutor
                 throw BuildException(response, body);
             }
 
-            TeslaResponse<T>? envelope;
+            T? payload;
             try
             {
-                envelope = string.IsNullOrEmpty(body)
-                    ? null
-                    : JsonSerializer.Deserialize<TeslaResponse<T>>(body, JsonOptions);
+                payload = string.IsNullOrEmpty(body)
+                    ? default
+                    : unwrapEnvelope
+                        ? JsonSerializer.Deserialize<TeslaResponse<T>>(body, JsonOptions) is { } envelope ? envelope.Response : default
+                        : JsonSerializer.Deserialize<T>(body, JsonOptions);
             }
             catch (JsonException ex)
             {
@@ -108,7 +116,7 @@ internal sealed class FleetApiExecutor
                     rateLimit: LastRateLimit);
             }
 
-            return new ApiResult<T>(envelope is null ? default : envelope.Response, response.StatusCode);
+            return new ApiResult<T>(payload, response.StatusCode);
         }
     }
 
