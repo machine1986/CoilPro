@@ -31,4 +31,12 @@ public sealed class CoilCommandsOptions
 
     /// <summary>Delay before re-signing and resending after a retryable fault. Default 1 s.</summary>
     public TimeSpan RetryDelay { get; set; } = TimeSpan.FromSeconds(1);
+
+    /// <summary>
+    /// Optional sink for protocol diagnostics, one line per step: handshake (session flags, whether the vehicle
+    /// echoed the request uuid), the signature type chosen, and the shape of each reply (encrypted or not, flags,
+    /// fault, attached session info). Never contains keys, tags, nonces, ciphertext or command payloads.
+    /// Null (default) disables it.
+    /// </summary>
+    public Action<string>? DiagnosticLog { get; set; }
 }

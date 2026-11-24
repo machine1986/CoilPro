@@ -114,10 +114,12 @@ Key pairs (client c/C, vehicle v/V) are in `protocol.md`. Further vectors: `ecdh
 
 Byte-exact tests need an injectable random source (nonce, uuid, routing address) and clock.
 
-## 10. Open questions for the live tests (UNVERIFIED)
+## 10. Live observations (2026-11-24, EU Model Y, fw 2026.38.6, `coil cmd … --debug`)
 
-- Does the Model Y advertise detached encryption on Infotainment (flags bit 0)?
-- Do VCSEC session-info replies carry `request_uuid`?
-- Are fault replies encrypted?
-- Do VCSEC lock/unlock replies carry a `commandStatus` (Go waits for a reply without one)?
-- Exact bodies of 408/503 from `signed_command`; must Infotainment be awake for its handshake?
+- **Infotainment advertises detached encryption** (`SessionInfo.flags` bit 0 set) → commands are signed with `AES_GCM_DETACHED`.
+- **VCSEC does not** → commands are signed with `HMAC_PERSONALIZED`.
+- **Both domains echo `request_uuid`** (16 bytes) — in the session-info reply and in the command reply.
+- **Both domains encrypt command replies** (`AES_GCM_Response_data`), VCSEC included; reply `flags = 0`.
+- Successful replies: Infotainment carries `signedMessageStatus = OK/NONE`, VCSEC carries none.
+
+Still open: whether **fault replies** are encrypted — no fault occurred in the live runs. The SDK accepts both (an encrypted reply is decrypted and authenticated before its fault is raised; an unencrypted fault reply is accepted as in Go). Also open: exact bodies of 408/503 from `signed_command`.

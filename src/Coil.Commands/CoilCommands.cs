@@ -170,11 +170,13 @@ public sealed class CoilCommands : ICoilCommands
         {
             var session = await GetSessionAsync(vin, command.Domain, state, ct).ConfigureAwait(false);
             var prepared = _protocol.Sign(session, vin, command.Payload);
+            Diagnose(() => $"{command.Name} → {command.Domain}: signed with {prepared.Message.SignatureData?.SigTypeCase}");
             RoutableMessage? reply = null;
             var opened = false;
             try
             {
                 reply = await _transport.SendAsync(vin, prepared.Message, ct).ConfigureAwait(false);
+                Diagnose(() => $"{command.Name} ← {command.Domain}: reply {DescribeReply(reply)}");
                 var plaintext = _protocol.OpenReply(session, vin, prepared, reply);
                 opened = true;
                 return _interpreter(command.Domain, plaintext);
@@ -212,9 +214,11 @@ public sealed class CoilCommands : ICoilCommands
             var request = _protocol.CreateSessionInfoRequest(domain);
             var sentAt = _timeProvider.GetUtcNow();
             var reply = await _transport.SendAsync(vin, request, ct).ConfigureAwait(false);
+            Diagnose(() => $"handshake ← {domain}: reply {DescribeReply(reply)}");
             try
             {
                 var session = _protocol.EstablishSession(vin, request, reply, sentAt);
+                Diagnose(() => $"handshake ← {domain}: session established, vehicle supports detached AES-GCM = {session.SupportsDetached}");
                 _cache.Set(vin, session);
                 return session;
             }
@@ -253,6 +257,26 @@ public sealed class CoilCommands : ICoilCommands
     }
 
     private static bool IsOnline(string? state) => string.Equals(state, "online", StringComparison.OrdinalIgnoreCase);
+
+    private void Diagnose(Func<string> message)
+    {
+        if (_options.DiagnosticLog is { } log)
+        {
+            log(message());
+        }
+    }
+
+    /// <summary>Shape of a reply for diagnostics — structure only, no key material or payload bytes.</summary>
+    private static string DescribeReply(RoutableMessage reply)
+    {
+        var fault = reply.SignedMessageStatus is { } status
+            ? $"{status.OperationStatus}/{(TeslaMessageFault)(int)status.SignedMessageFault}"
+            : "none";
+        return $"from={reply.FromDestination?.SubDestinationCase.ToString() ?? "-"}:{(reply.FromDestination?.SubDestinationCase == Destination.SubDestinationOneofCase.Domain ? reply.FromDestination.Domain.ToString() : "-")}, " +
+               $"payload={reply.PayloadCase}, signature={reply.SignatureData?.SigTypeCase.ToString() ?? "none"}, " +
+               $"flags={reply.Flags}, request_uuid={(reply.RequestUuid.IsEmpty ? "absent" : $"{reply.RequestUuid.Length} bytes")}, " +
+               $"status={fault}";
+    }
 
     private sealed class RunState
     {

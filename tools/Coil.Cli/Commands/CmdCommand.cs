@@ -23,6 +23,7 @@ internal static class CmdCommand
     {
         var positional = new List<string>();
         var wake = false;
+        var debug = false;
         var timeout = TimeSpan.FromSeconds(30);
 
         for (var i = 0; i < args.Length; i++)
@@ -38,6 +39,10 @@ internal static class CmdCommand
             if (arg == "--wake")
             {
                 wake = true;
+            }
+            else if (arg == "--debug")
+            {
+                debug = true;
             }
             else if (arg == "--timeout" || arg.StartsWith("--timeout=", StringComparison.Ordinal))
             {
@@ -134,7 +139,12 @@ internal static class CmdCommand
 
             using var clients = CliClientFactory.Create(session);
 
-            var options = new CoilCommandsOptions { AutoWake = wake, CommandTimeout = timeout };
+            var options = new CoilCommandsOptions
+            {
+                AutoWake = wake,
+                CommandTimeout = timeout,
+                DiagnosticLog = debug ? line => Console.Error.WriteLine($"[debug] {line}") : null,
+            };
             var commands = new CoilCommands(clients.ApiHttp, clients.TokenProvider, keyPair, clients.CoilClient, options);
 
             try
@@ -288,7 +298,7 @@ internal static class CmdCommand
             coil cmd — send a signed vehicle command (Vehicle Command Protocol, no tesla-http-proxy).
 
             Usage:
-              coil cmd <VIN> <command> [args] [--wake] [--timeout <seconds>]
+              coil cmd <VIN> <command> [args] [--wake] [--timeout <seconds>] [--debug]
 
             Commands:
               lock | unlock | honk | flash
@@ -302,6 +312,7 @@ internal static class CmdCommand
             Options:
               --wake                  Wake a sleeping vehicle first (a billed Fleet API call; off by default)
               --timeout <seconds>     Overall command deadline, default: 30
+              --debug                 Print protocol diagnostics to stderr (no keys or payloads)
 
             <VIN> must be the 17-character VIN (see `coil vehicles`), not the numeric id.
 
