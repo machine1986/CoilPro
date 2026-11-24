@@ -31,7 +31,7 @@ vehicle commands without running Tesla's Go-based `tesla-http-proxy`.
 - **ASP.NET Core / DI** integration (`AddCoilProProApi`, `AddCoilProProCommands`) with `IHttpClientFactory` and Polly retries.
 - **`coilpro` CLI** (`dotnet tool`) for onboarding and smoke tests.
 
-Libraries target `net8.0` and `net10.0` (CLI: `net10.0`). MIT licensed.
+Targets `net10.0`. MIT licensed.
 
 ## Packages
 

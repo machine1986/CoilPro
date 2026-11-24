@@ -4,7 +4,7 @@ Thanks for your interest. CoilPro is an unofficial SDK for the Tesla Fleet API â
 
 ## Build and test
 
-You need the .NET 10 SDK and the .NET 8 SDK (libraries multi-target `net8.0;net10.0`).
+You need the .NET 10 SDK; everything targets `net10.0`.
 
 ```bash
 dotnet restore
@@ -21,7 +21,7 @@ dotnet docfx docs/docfx.json   # output: docs/_site
 
 ## Conventions
 
-- Libraries target `net8.0;net10.0`; CLI, tests and samples `net10.0`. `Nullable` and `ImplicitUsings` are on, `LangVersion` is `latest` (see `Directory.Build.props`).
+- Everything targets `net10.0`. `Nullable` and `ImplicitUsings` are on, `LangVersion` is `latest` (see `Directory.Build.props`).
 - Cryptography only through `System.Security.Cryptography` â€” no BouncyCastle unless unavoidable.
 - Models are `record` types, JSON via `System.Text.Json`, deserialization tolerant of unknown fields.
 - HTTP through `IHttpClientFactory`, resilience via Polly.

@@ -6,23 +6,17 @@
   </ItemGroup>
 
   <!--
-    Diese Referenzen sind MINDESTVERSIONEN und bleiben bewusst auf der 8.0.x-Linie —
-    passend zum niedrigsten Zielframework (net8.0). Ein net10.0-Host löst automatisch
-    auf die Assemblies seines Shared Framework auf; ein net8.0-Konsument darf umgekehrt
-    nicht in .NET-10-Assemblies gezogen werden.
-
-    Die Familie muss geschlossen bleiben: entweder alle drei auf 8.0.x oder alle drei
-    hochziehen, sobald net8.0 aus TargetFrameworks fällt. Nie mischen.
-    .github/dependabot.yml blockt Major-Bumps für genau diese drei Pakete.
+    Mindestversionen der 10.0-Linie, passend zum Zielframework net10.0. Die drei Pakete bilden eine
+    Familie und werden gemeinsam aktualisiert.
   -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="10.0.15" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.15" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="10.0.15" />
   </ItemGroup>
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <Description>ASP.NET Core / generic-host DI extensions for CoilPro (Tesla Fleet API SDK). Not affiliated with Tesla, Inc.</Description>

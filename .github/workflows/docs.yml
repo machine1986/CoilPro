@@ -40,7 +40,6 @@ jobs:
         with:
           dotnet-version: |
             10.0.x
-            8.0.x
 
       - name: Restore local tools (docfx)
         run: dotnet tool restore

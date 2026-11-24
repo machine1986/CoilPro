@@ -1,6 +1,6 @@
 # CoilPro
 
-**CoilPro** is an unofficial, open-source .NET SDK for the [Tesla Fleet API](https://developer.tesla.com/docs/fleet-api). It targets `net8.0` and `net10.0` and is MIT-licensed.
+**CoilPro** is an unofficial, open-source .NET SDK for the [Tesla Fleet API](https://developer.tesla.com/docs/fleet-api). It targets `net10.0` and is MIT-licensed.
 
 > **Unofficial — not affiliated with, endorsed by, or sponsored by Tesla, Inc.** "Tesla" is used only to describe API compatibility.
 

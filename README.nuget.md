@@ -12,7 +12,7 @@ Command Protocol in pure C# — without Tesla's Go-based `tesla-http-proxy`.
 > **Preview.** Verified live against the EU region with one Model Y; other regions and vehicles are
 > covered by tests only. Expect API changes before 1.0.
 
-Target frameworks: **.NET 8** and **.NET 10**. License: **MIT**.
+Target framework: **.NET 10**. License: **MIT**.
 
 ## Packages
 
